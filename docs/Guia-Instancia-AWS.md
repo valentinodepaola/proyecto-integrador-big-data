@@ -23,6 +23,40 @@
 
 ---
 
+## Rutina de cada sesión de trabajo
+
+Todo lo instalado (Hadoop, Spark, Jupyter, datos de HDFS, notebooks) se conserva al apagar la instancia. Lo que hay que repetir cada vez es encender y arrancar los servicios:
+
+**Al empezar**
+
+| # | Dónde | Qué | Comando |
+|---|---|---|---|
+| 1 | Mac | Encender la instancia | `aws ec2 start-instances --instance-ids i-0806080a3fc3c8e73 --profile bigdata` |
+| 2 | Mac | Esperar y ver la IP nueva | `aws ec2 wait instance-running --instance-ids i-0806080a3fc3c8e73 --profile bigdata && aws ec2 describe-instances --instance-ids i-0806080a3fc3c8e73 --profile bigdata --query 'Reservations[0].Instances[0].PublicIpAddress' --output text` |
+| 3 | Mac | Conectarse | `ssh -i ~/.ssh/bigdata ubuntu@<IP>` |
+| 4 | Instancia | Arrancar Hadoop | `start-dfs.sh && start-yarn.sh` |
+| 5 | Instancia | Arrancar historial de Spark y Jupyter | `$SPARK_HOME/sbin/start-history-server.sh && nohup ~/venv/bin/jupyter lab --no-browser --ip=127.0.0.1 --port=8888 --notebook-dir=$HOME/notebooks > ~/jupyter.log 2>&1 &` |
+| 6 | Instancia | Comprobar y obtener la URL de Jupyter | `jps; sleep 5; ~/venv/bin/jupyter server list` |
+| 7 | Mac (otra pestaña) | Abrir el túnel | `ssh -i ~/.ssh/bigdata -N -L 9870:localhost:9870 -L 8088:localhost:8088 -L 8888:localhost:8888 -L 4040:localhost:4040 -L 18080:localhost:18080 ubuntu@<IP>` |
+| 8 | Navegador | Abrir Jupyter | La URL del paso 6 |
+
+**Al terminar**
+
+| # | Dónde | Qué | Comando |
+|---|---|---|---|
+| 1 | Jupyter | Cerrar la sesión de Spark del notebook | `spark.stop()` |
+| 2 | Instancia | Detener los servicios | `~/venv/bin/jupyter server stop 8888; $SPARK_HOME/sbin/stop-history-server.sh; stop-yarn.sh && stop-dfs.sh` |
+| 3 | Instancia | Salir | `exit` |
+| 4 | Mac | Cerrar el túnel | `Ctrl + C` en su pestaña |
+| 5 | Mac | Apagar la instancia | `aws ec2 stop-instances --instance-ids i-0806080a3fc3c8e73 --profile bigdata` |
+
+> Si en el paso 3 o 7 SSH se queda colgado (*Connection timed out*), tu IP cambió: corre `cd infra && terraform apply` (sección 4).
+> Si un enlace de Spark o YARN abre `ip-172-31-20-93:...` y no carga, cambia `ip-172-31-20-93` por `localhost` en la URL.
+
+Las secciones siguientes explican cada paso con más detalle.
+
+---
+
 ## 2. Reglas de oro
 
 1. **Detener la instancia al terminar cada sesión.** Encendida gasta crédito aunque nadie la use.
