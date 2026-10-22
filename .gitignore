@@ -1,0 +1,25 @@
+# Terraform (el estado solo vive en la Mac de quien administra AWS)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+tfplan
+crash.log
+
+# Credenciales y llaves
+*.pem
+.env
+
+# Datos: se descargan con scripts y viven en HDFS, no en el repo
+data/
+*.csv
+*.parquet
+
+# Python / Jupyter
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+
+# Local
+.DS_Store
+.claude/settings.local.json

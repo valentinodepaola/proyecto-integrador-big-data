@@ -1,0 +1,214 @@
+# Guía de la instancia AWS — `hadoop-bigdata`
+
+> Cómo encender, detener, conectarse y mantener la instancia de la Fase 3.
+> Código de la infraestructura: [`infra/`](../infra/) · Plan general: [Fase3-Plan-y-Alcance.md](Fase3-Plan-y-Alcance.md)
+
+---
+
+## 1. Qué tenemos
+
+| Dato | Valor |
+|---|---|
+| Cuenta AWS | `964515698813` (cuenta personal de Valentino, plan gratuito, USD 100 de crédito) |
+| Región | `us-east-1` (Norte de Virginia) |
+| Instancia | `i-0806080a3fc3c8e73` · nombre `hadoop-bigdata` |
+| Tipo | `m7i-flex.large` · 2 vCPU · 8 GiB RAM (apta para nivel gratuito) |
+| Sistema | Ubuntu 24.04 LTS · usuario `ubuntu` |
+| Disco | 30 GB gp3 |
+| Acceso | Solo SSH (puerto 22) desde las IPs autorizadas |
+| Llave SSH | `~/.ssh/bigdata` (privada) · `~/.ssh/bigdata.pub` (pública) |
+| Perfil AWS CLI | `bigdata` (usuario IAM `terraform-bigdata`) |
+
+> ⚠️ **La IP pública cambia cada vez que la instancia se detiene y se vuelve a encender.** Siempre consúltala antes de conectarte (sección 3).
+
+---
+
+## 2. Reglas de oro
+
+1. **Detener la instancia al terminar cada sesión.** Encendida gasta crédito aunque nadie la use.
+2. **Siempre usar `--profile bigdata`.** El perfil `default` de la Mac es de otra cuenta.
+3. **Nunca compartir ni subir a GitHub:** `~/.ssh/bigdata`, las claves de acceso de AWS, ni los archivos `*.tfstate` / `tfplan`.
+4. **Detener ≠ destruir.** Detener conserva el disco; `terraform destroy` lo borra todo.
+
+---
+
+## 3. Uso diario
+
+Todos los comandos se corren desde la Mac.
+
+### Encender
+
+```bash
+aws ec2 start-instances --instance-ids i-0806080a3fc3c8e73 --profile bigdata
+aws ec2 wait instance-running --instance-ids i-0806080a3fc3c8e73 --profile bigdata
+```
+
+### Ver la IP pública actual
+
+```bash
+aws ec2 describe-instances --instance-ids i-0806080a3fc3c8e73 --profile bigdata \
+  --query 'Reservations[0].Instances[0].PublicIpAddress' --output text
+```
+
+### Conectarse
+
+```bash
+ssh -i ~/.ssh/bigdata ubuntu@<IP>
+```
+
+> La primera vez que te conectes a una IP nueva, SSH pregunta si confías en el servidor: responde `yes`.
+
+### Detener
+
+```bash
+aws ec2 stop-instances --instance-ids i-0806080a3fc3c8e73 --profile bigdata
+```
+
+También se puede detener desde dentro de la instancia: `sudo shutdown -h now`.
+
+### Ver el estado
+
+```bash
+aws ec2 describe-instances --instance-ids i-0806080a3fc3c8e73 --profile bigdata \
+  --query 'Reservations[0].Instances[0].State.Name' --output text
+```
+
+Estados: `pending` → `running` → `stopping` → `stopped`.
+
+### Desde la consola web (alternativa)
+
+EC2 → Instancias → seleccionar `hadoop-bigdata` → **Estado de la instancia** → *Iniciar* / *Detener*. La IP aparece en **Dirección IPv4 pública**.
+
+> ❌ **No usar "Terminar instancia"**: la borra junto con su disco.
+
+---
+
+## 4. Si cambias de red (casa, uni, datos del celular)
+
+El SSH solo acepta las IPs registradas. Si te conectas desde otra red, `ssh` se queda esperando y termina con *Connection timed out*. Para registrar tu IP nueva:
+
+```bash
+cd infra
+terraform apply
+```
+
+Terraform detecta tu IP actual y actualiza la regla del grupo de seguridad (no toca la instancia ni sus datos). Revisa que el plan solo diga `~ update in-place` en `aws_security_group.hadoop` antes de confirmar con `yes`.
+
+---
+
+## 5. Ver las interfaces web (HDFS, YARN, Jupyter, Spark)
+
+No se abren puertos al internet: se usa un **túnel SSH**. Con este comando abierto en una terminal:
+
+```bash
+ssh -i ~/.ssh/bigdata \
+  -L 9870:localhost:9870 \
+  -L 8088:localhost:8088 \
+  -L 8888:localhost:8888 \
+  -L 4040:localhost:4040 \
+  ubuntu@<IP>
+```
+
+…se abren en el navegador de la Mac:
+
+| Servicio | URL local |
+|---|---|
+| HDFS NameNode | http://localhost:9870 |
+| YARN ResourceManager | http://localhost:8088 |
+| Jupyter | http://localhost:8888 |
+| Spark (mientras corre un trabajo) | http://localhost:4040 |
+
+> Estas interfaces funcionarán una vez instalados Hadoop, Spark y Jupyter. Son buenas capturas para la evidencia del reporte.
+
+---
+
+## 6. Copiar archivos
+
+```bash
+# Mac → instancia
+scp -i ~/.ssh/bigdata archivo.csv ubuntu@<IP>:~/
+
+# Instancia → Mac
+scp -i ~/.ssh/bigdata ubuntu@<IP>:~/resultados/grafica.png .
+
+# Carpetas completas (sincroniza solo lo que cambió)
+rsync -avz -e "ssh -i ~/.ssh/bigdata" ./notebooks/ ubuntu@<IP>:~/notebooks/
+```
+
+---
+
+## 7. Acceso para Carlos y Eduardo
+
+Cada quien usa **su propia llave**; nunca se comparte `~/.ssh/bigdata`.
+
+**Lo que hace cada compañero en su computadora:**
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/bigdata -C "nombre-bigdata"
+curl https://checkip.amazonaws.com
+```
+
+Y le manda a Valentino **solo** el contenido de `~/.ssh/bigdata.pub` (la pública) y su IP.
+
+**Lo que hace Valentino:**
+
+1. Agregar la llave pública del compañero dentro de la instancia:
+   ```bash
+   ssh -i ~/.ssh/bigdata ubuntu@<IP>
+   echo "ssh-ed25519 AAAA... nombre-bigdata" >> ~/.ssh/authorized_keys
+   ```
+2. Autorizar su IP en `infra/terraform.tfvars` (este archivo no se sube a GitHub):
+   ```hcl
+   extra_ssh_cidrs = ["201.x.x.x/32", "189.x.x.x/32"]
+   ```
+3. Aplicar: `cd infra && terraform apply`.
+
+> Solo Valentino puede encender y detener la instancia (tiene las credenciales de AWS). Hay que coordinar quién la apaga al terminar.
+
+---
+
+## 8. Costos y crédito
+
+| Situación | Qué se cobra (contra el crédito) |
+|---|---|
+| Encendida | Cómputo (≈ USD 0.10/hora) + disco + IP pública |
+| Detenida | Solo el disco de 30 GB (unos pocos dólares al mes) |
+| Destruida | Nada |
+
+- **Ver crédito restante:** consola → Administración de facturación y costos → **Créditos**.
+- **Alerta:** hay un presupuesto mensual de USD 5 que avisa por correo al 85 % y 100 %.
+- **Vigencia del plan gratuito:** consola → Facturación → **Nivel gratuito**.
+- Con el plan gratuito AWS no cobra a la tarjeta. Al agotarse el crédito o vencer el plan, se pierde el acceso a los recursos a menos que se pase a un plan de pago (confirmar condiciones en **Nivel gratuito**). Respaldar antes de que eso pase.
+
+---
+
+## 9. Terraform: crear, recrear y borrar
+
+Desde la carpeta `infra/`:
+
+| Comando | Qué hace |
+|---|---|
+| `terraform plan` | Muestra qué cambiaría, **sin hacer nada** |
+| `terraform apply` | Crea o actualiza lo que falte (pide confirmar con `yes`) |
+| `terraform output` | Muestra ID, IP y comando ssh guardados* |
+| `terraform destroy` | **Borra todo**: instancia, disco, grupo de seguridad y llave |
+
+\* `terraform output` muestra la IP del último `apply`. Si la instancia se detuvo y se volvió a encender, usa el comando de la sección 3 o actualiza con `terraform apply -refresh-only`.
+
+**Cuándo destruir:** al terminar el proyecto, o si algo quedó muy roto y conviene empezar de cero. Una instancia recreada **llega vacía** (sin Hadoop ni datos) y con una IP nueva.
+
+**Antes de destruir:** respaldar notebooks, resultados y gráficas con `scp`/`rsync` (sección 6).
+
+---
+
+## 10. Solución de problemas
+
+| Síntoma | Causa probable | Solución |
+|---|---|---|
+| `ssh` se queda colgado / *Connection timed out* | Tu IP cambió, o la instancia está detenida | `terraform apply` (sección 4) y revisa el estado (sección 3) |
+| *Permission denied (publickey)* | Llave o usuario equivocados | Usa `-i ~/.ssh/bigdata` y el usuario `ubuntu` |
+| *UNPROTECTED PRIVATE KEY FILE* | Permisos de la llave muy abiertos | `chmod 600 ~/.ssh/bigdata` |
+| *REMOTE HOST IDENTIFICATION HAS CHANGED* | La IP ahora es de otra instancia (p. ej. tras recrear) | `ssh-keygen -R <IP>` y vuelve a conectar |
+| *InsufficientInstanceCapacity* al encender | AWS sin capacidad momentánea de ese tipo | Esperar unos minutos y reintentar |
+| Error de credenciales en Terraform o AWS CLI | Perfil mal configurado | `aws sts get-caller-identity --profile bigdata` debe mostrar la cuenta `964515698813` |
+| La instancia va muy lenta o se cuelga | Poca RAM para lo que corre | Revisar con `free -h`; detener servicios que no se usen |
