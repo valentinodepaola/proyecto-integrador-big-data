@@ -53,8 +53,8 @@ La Fase 2 se mantiene como la arquitectura a la que apunta el proyecto. Esta fas
 | Servidor | EC2 `m7i-flex.large` (2 vCPU, 8 GiB RAM, 30 GB), Ubuntu 24.04 LTS |
 | Infraestructura como código | Terraform, en [`infra/`](../infra/) |
 | Almacenamiento distribuido | Hadoop 3.5.0 (HDFS + YARN) con Java 17, instalado a mano en modo pseudo-distribuido ([`scripts/instalar-hadoop.sh`](../scripts/instalar-hadoop.sh)) |
-| Procesamiento | Apache Spark + PySpark sobre YARN, con Jupyter |
-| Consultas SQL | Spark SQL con metastore de Hive |
+| Procesamiento | Apache Spark 4.2.0 + PySpark sobre YARN, con JupyterLab ([`scripts/instalar-spark.sh`](../scripts/instalar-spark.sh)) |
+| Consultas SQL | Spark SQL con catálogo Hive (metastore Derby), base de datos `chicago` |
 | Datos | Histórico completo de Chicago (8,631,202 incidentes), en HDFS por capas: `raw` → `processed` → `curated` (+ `quarantine`) |
 | Análisis y gráficos | Notebooks de PySpark con matplotlib / seaborn |
 
@@ -84,7 +84,7 @@ Salen de los hallazgos de la Fase 2 y se prueban sobre el **histórico completo*
 - [ ] Validar con el profesor el alcance de la infraestructura.
 - [x] Crear la instancia EC2 con Terraform.
 - [x] Instalar y configurar Hadoop (HDFS + YARN).
-- [ ] Instalar Spark, PySpark, Jupyter y el metastore de Hive.
+- [x] Instalar Spark, PySpark, Jupyter y el metastore de Hive.
 - [ ] Descargar el histórico completo y cargarlo a HDFS (`raw` → `processed` → `curated`).
 - [ ] Cerrar la redacción de las cinco hipótesis.
 - [ ] Analizar cada hipótesis con PySpark y generar sus gráficos.

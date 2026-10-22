@@ -83,31 +83,42 @@ EC2 → Instancias → seleccionar `hadoop-bigdata` → **Estado de la instancia
 
 ---
 
-## 3.1 Hadoop: arrancar y detener los servicios
+## 3.1 Hadoop, Spark y Jupyter: arrancar y detener los servicios
 
-Hadoop **no arranca solo** al encender la instancia. Dentro de la instancia (`ssh` primero):
+Nada de esto **arranca solo** al encender la instancia. Dentro de la instancia (`ssh` primero):
 
 ```bash
-# Arrancar
+# Arrancar (en este orden)
 start-dfs.sh && start-yarn.sh
-jps    # deben aparecer NameNode, DataNode, SecondaryNameNode, ResourceManager y NodeManager
+$SPARK_HOME/sbin/start-history-server.sh
+nohup ~/venv/bin/jupyter lab --no-browser --ip=127.0.0.1 --port=8888 --notebook-dir=$HOME/notebooks > ~/jupyter.log 2>&1 &
+jps                                # NameNode, DataNode, SecondaryNameNode, ResourceManager, NodeManager, HistoryServer
+sleep 5; ~/venv/bin/jupyter server list   # URL de Jupyter con su token
 
 # Detener (antes de apagar la instancia)
+~/venv/bin/jupyter server stop 8888
+$SPARK_HOME/sbin/stop-history-server.sh
 stop-yarn.sh && stop-dfs.sh
 ```
 
-**Orden recomendado para apagar todo:** `stop-yarn.sh && stop-dfs.sh` → salir de la instancia → detener la instancia (sección 3).
+**Orden recomendado para apagar todo:** detener los servicios → salir de la instancia → detener la instancia (sección 3).
 
 > ❌ **Nunca volver a correr `hdfs namenode -format`**: borra todo lo que haya en HDFS. Solo se hizo una vez, en la instalación.
 
+> ⚠️ **Una sola sesión de Spark a la vez.** El catálogo de Hive usa Derby, que no admite dos sesiones simultáneas. Al terminar con un notebook, correr `spark.stop()`.
+
 | Dato | Valor |
 |---|---|
-| Versión | Hadoop 3.5.0 · Java 17 (Hadoop 3.5 no corre con Java 11) |
-| Instalación | `/opt/hadoop` · configuración en `/opt/hadoop/etc/hadoop` |
+| Java | OpenJDK 17 (Hadoop 3.5 no corre con Java 11) |
+| Hadoop | 3.5.0 en `/opt/hadoop` · configuración en `/opt/hadoop/etc/hadoop` |
 | Datos de HDFS | `/home/ubuntu/hadoop-data` (replicación 1) |
 | YARN | 5 GB de RAM y 2 núcleos |
+| Spark | 4.2.0 en `/opt/spark`, sobre YARN · driver 1 GB + 2 ejecutores de 1 GB |
+| Catálogo Hive | Metastore Derby en `~/hive-metastore` · tablas en `hdfs:///user/hive/warehouse` |
+| Python | `~/venv`: PySpark 4.2.0, JupyterLab, pandas 2, pyarrow, matplotlib, seaborn |
+| Notebooks | `~/notebooks` (los ve Jupyter) |
 | Data lake | `/datalake/raw`, `/processed`, `/curated`, `/quarantine` |
-| Script de instalación | [`scripts/instalar-hadoop.sh`](../scripts/instalar-hadoop.sh) (para una instancia nueva) |
+| Scripts de instalación | [`instalar-hadoop.sh`](../scripts/instalar-hadoop.sh) y luego [`instalar-spark.sh`](../scripts/instalar-spark.sh) (para una instancia nueva) |
 
 ---
 
@@ -134,6 +145,7 @@ ssh -i ~/.ssh/bigdata \
   -L 8088:localhost:8088 \
   -L 8888:localhost:8888 \
   -L 4040:localhost:4040 \
+  -L 18080:localhost:18080 \
   ubuntu@<IP>
 ```
 
@@ -143,10 +155,11 @@ ssh -i ~/.ssh/bigdata \
 |---|---|
 | HDFS NameNode | http://localhost:9870 |
 | YARN ResourceManager | http://localhost:8088 |
-| Jupyter | http://localhost:8888 |
-| Spark (mientras corre un trabajo) | http://localhost:4040 |
+| Jupyter | URL con token de `jupyter server list` (empieza con http://127.0.0.1:8888) |
+| Spark UI (mientras hay una sesión abierta) | http://localhost:4040 |
+| Historial de Spark | http://localhost:18080 |
 
-> HDFS y YARN ya funcionan; Jupyter y Spark funcionarán cuando se instalen. El túnel se abre **desde la Mac**, no dentro de la instancia.
+> El túnel se abre **desde la Mac**, no dentro de la instancia.
 
 ---
 
