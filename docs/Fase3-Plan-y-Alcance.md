@@ -52,7 +52,7 @@ La Fase 2 se mantiene como la arquitectura a la que apunta el proyecto. Esta fas
 | Nube | AWS, región `us-east-1`, cuenta en plan gratuito |
 | Servidor | EC2 `m7i-flex.large` (2 vCPU, 8 GiB RAM, 30 GB), Ubuntu 24.04 LTS |
 | Infraestructura como código | Terraform, en [`infra/`](../infra/) |
-| Almacenamiento distribuido | Hadoop HDFS + YARN, instalado a mano (pseudo-distribuido; opcional: 3 DataNodes en Docker para mostrar la replicación ×3) |
+| Almacenamiento distribuido | Hadoop 3.5.0 (HDFS + YARN) con Java 17, instalado a mano en modo pseudo-distribuido ([`scripts/instalar-hadoop.sh`](../scripts/instalar-hadoop.sh)) |
 | Procesamiento | Apache Spark + PySpark sobre YARN, con Jupyter |
 | Consultas SQL | Spark SQL con metastore de Hive |
 | Datos | Histórico completo de Chicago (8,631,202 incidentes), en HDFS por capas: `raw` → `processed` → `curated` (+ `quarantine`) |
@@ -83,7 +83,7 @@ Salen de los hallazgos de la Fase 2 y se prueban sobre el **histórico completo*
 - [x] Armar el cronograma de actividades (entregable 1) → [Google Sheets](https://docs.google.com/spreadsheets/d/10YlytnRe1zkorUshp-m4lVZnoRnIBb-bMqZ8wN35ZU4/edit).
 - [ ] Validar con el profesor el alcance de la infraestructura.
 - [x] Crear la instancia EC2 con Terraform.
-- [ ] Instalar y configurar Hadoop (HDFS + YARN).
+- [x] Instalar y configurar Hadoop (HDFS + YARN).
 - [ ] Instalar Spark, PySpark, Jupyter y el metastore de Hive.
 - [ ] Descargar el histórico completo y cargarlo a HDFS (`raw` → `processed` → `curated`).
 - [ ] Cerrar la redacción de las cinco hipótesis.

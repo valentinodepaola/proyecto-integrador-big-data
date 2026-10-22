@@ -83,6 +83,34 @@ EC2 → Instancias → seleccionar `hadoop-bigdata` → **Estado de la instancia
 
 ---
 
+## 3.1 Hadoop: arrancar y detener los servicios
+
+Hadoop **no arranca solo** al encender la instancia. Dentro de la instancia (`ssh` primero):
+
+```bash
+# Arrancar
+start-dfs.sh && start-yarn.sh
+jps    # deben aparecer NameNode, DataNode, SecondaryNameNode, ResourceManager y NodeManager
+
+# Detener (antes de apagar la instancia)
+stop-yarn.sh && stop-dfs.sh
+```
+
+**Orden recomendado para apagar todo:** `stop-yarn.sh && stop-dfs.sh` → salir de la instancia → detener la instancia (sección 3).
+
+> ❌ **Nunca volver a correr `hdfs namenode -format`**: borra todo lo que haya en HDFS. Solo se hizo una vez, en la instalación.
+
+| Dato | Valor |
+|---|---|
+| Versión | Hadoop 3.5.0 · Java 17 (Hadoop 3.5 no corre con Java 11) |
+| Instalación | `/opt/hadoop` · configuración en `/opt/hadoop/etc/hadoop` |
+| Datos de HDFS | `/home/ubuntu/hadoop-data` (replicación 1) |
+| YARN | 5 GB de RAM y 2 núcleos |
+| Data lake | `/datalake/raw`, `/processed`, `/curated`, `/quarantine` |
+| Script de instalación | [`scripts/instalar-hadoop.sh`](../scripts/instalar-hadoop.sh) (para una instancia nueva) |
+
+---
+
 ## 4. Si cambias de red (casa, uni, datos del celular)
 
 El SSH solo acepta las IPs registradas. Si te conectas desde otra red, `ssh` se queda esperando y termina con *Connection timed out*. Para registrar tu IP nueva:
@@ -118,7 +146,7 @@ ssh -i ~/.ssh/bigdata \
 | Jupyter | http://localhost:8888 |
 | Spark (mientras corre un trabajo) | http://localhost:4040 |
 
-> Estas interfaces funcionarán una vez instalados Hadoop, Spark y Jupyter. Son buenas capturas para la evidencia del reporte.
+> HDFS y YARN ya funcionan; Jupyter y Spark funcionarán cuando se instalen. El túnel se abre **desde la Mac**, no dentro de la instancia.
 
 ---
 
@@ -195,7 +223,7 @@ Desde la carpeta `infra/`:
 
 \* `terraform output` muestra la IP del último `apply`. Si la instancia se detuvo y se volvió a encender, usa el comando de la sección 3 o actualiza con `terraform apply -refresh-only`.
 
-**Cuándo destruir:** al terminar el proyecto, o si algo quedó muy roto y conviene empezar de cero. Una instancia recreada **llega vacía** (sin Hadoop ni datos) y con una IP nueva.
+**Cuándo destruir:** al terminar el proyecto, o si algo quedó muy roto y conviene empezar de cero. Una instancia recreada **llega vacía** (sin Hadoop ni datos) y con una IP nueva; Hadoop se reinstala con `scripts/instalar-hadoop.sh`.
 
 **Antes de destruir:** respaldar notebooks, resultados y gráficas con `scp`/`rsync` (sección 6).
 
