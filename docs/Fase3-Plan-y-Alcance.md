@@ -3,6 +3,7 @@
 > Proyecto integrador de tecnologías de Big Data · Predicción de delitos en Chicago
 > Fase 2 (diseño CRISP-DM): [Google Doc](https://docs.google.com/document/d/1j1llfIa9vETELeaJd5Plgcu2zRa5RBDYazHdIkCQM-Q/edit)
 > Operación de la instancia: [Guia-Instancia-AWS.md](Guia-Instancia-AWS.md)
+> Cronograma (28 sep – 31 oct 2026): [Google Sheets](https://docs.google.com/spreadsheets/d/10YlytnRe1zkorUshp-m4lVZnoRnIBb-bMqZ8wN35ZU4/edit)
 
 ---
 
@@ -79,7 +80,7 @@ Salen de los hallazgos de la Fase 2 y se prueban sobre el **histórico completo*
 
 ## Actividades
 
-- [ ] Armar el cronograma de actividades (entregable 1).
+- [x] Armar el cronograma de actividades (entregable 1) → [Google Sheets](https://docs.google.com/spreadsheets/d/10YlytnRe1zkorUshp-m4lVZnoRnIBb-bMqZ8wN35ZU4/edit).
 - [ ] Validar con el profesor el alcance de la infraestructura.
 - [x] Crear la instancia EC2 con Terraform.
 - [ ] Instalar y configurar Hadoop (HDFS + YARN).
