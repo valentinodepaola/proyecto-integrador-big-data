@@ -76,11 +76,11 @@ Lalo puede empezar #7 desde ya en su compu con el CSV de 2025 y la plantilla (`n
 
 ---
 
-## Decisiones propuestas (por confirmar)
+## Decisiones
 
 | Tema | Propuesta | Por qué |
 |---|---|---|
-| Dataset | Crímenes 2025 (`t7ek-mgzi`); el histórico completo queda como opcional | Es el dataset de las fases anteriores y lo que pide la actividad |
+| Dataset ✅ **decidido** | Crímenes 2025 (`t7ek-mgzi`). Si sobra tiempo después de B3, repetir con 2022 a 2025 como comparación | Es el dataset de las fases anteriores, la rúbrica no da puntos por volumen y cada prueba tarda minutos. Con el histórico completo habría que revisar el cambio de zonas de patrullaje de 2012 |
 | Unidad de análisis | Zona-turno: beat × bloque de 6 h × semana | Así se reparten las patrullas; decidido en la Fase 2 |
 | Modelos | `GBTRegressor` contra `RandomForestRegressor`, prediciendo incidentes por zona-turno | Es la pareja que definió la Fase 2 (GBT con Random Forest de contraste) y permite compararlos sobre la misma pregunta |
 | División 80/20 | Por fecha: primeras 80 % de semanas para entrenar, últimas 20 % para probar | Con datos en el tiempo, una división aleatoria deja que el modelo "vea el futuro" |
