@@ -9,7 +9,7 @@ Predicción de delitos en Chicago: dónde, cuándo y qué tipo de delito es más
 | Fase | Contenido | Documento |
 |---|---|---|
 | 2 | Plan CRISP-DM y arquitectura objetivo | [Google Doc](https://docs.google.com/document/d/1j1llfIa9vETELeaJd5Plgcu2zRa5RBDYazHdIkCQM-Q/edit) |
-| 3 | Infraestructura Big Data y análisis de cinco hipótesis | [docs/Fase3-Plan-y-Alcance.md](docs/Fase3-Plan-y-Alcance.md) |
+| 3 | Pipeline y modelado con PySpark: preparación de datos, 2 modelos de SparkML y 5 visualizaciones | [docs/Fase3-Plan-y-Alcance.md](docs/Fase3-Plan-y-Alcance.md) |
 
 ## Estructura
 
@@ -17,7 +17,7 @@ Predicción de delitos en Chicago: dónde, cuándo y qué tipo de delito es más
 docs/        Planes de cada fase y guías de operación
 infra/       Terraform: instancia EC2 en AWS (Hadoop + Spark)
 scripts/     Instalación de Hadoop/Spark e ingesta de datos
-notebooks/   Análisis en PySpark (uno por hipótesis)
+notebooks/   Notebook del pipeline (A, B y C) y plantilla para prototipar en local
 evidencia/   Capturas para el reporte
 ```
 

@@ -149,7 +149,7 @@ stop-yarn.sh && stop-dfs.sh
 | YARN | 5 GB de RAM y 2 núcleos |
 | Spark | 4.2.0 en `/opt/spark`, sobre YARN · driver 1 GB + 2 ejecutores de 1 GB |
 | Catálogo Hive | Metastore Derby en `~/hive-metastore` · tablas en `hdfs:///user/hive/warehouse` |
-| Python | `~/venv`: PySpark 4.2.0, JupyterLab, pandas 2, pyarrow, matplotlib, seaborn |
+| Python | `~/venv`: PySpark 4.2.0, JupyterLab, pandas 2, pyarrow, matplotlib, seaborn, plotly |
 | Notebooks | `~/notebooks` (los ve Jupyter) |
 | Data lake | `/datalake/raw`, `/processed`, `/curated`, `/quarantine` |
 | Scripts de instalación | [`instalar-hadoop.sh`](../scripts/instalar-hadoop.sh) y luego [`instalar-spark.sh`](../scripts/instalar-spark.sh) (para una instancia nueva) |

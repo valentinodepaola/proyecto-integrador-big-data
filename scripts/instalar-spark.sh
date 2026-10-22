@@ -79,7 +79,7 @@ sudo apt-get install -y -q python3-venv
 [ -d ~/venv ] || python3 -m venv ~/venv
 ~/venv/bin/pip install -q --upgrade pip
 # PySpark 4.2 todavía no soporta pandas 3
-~/venv/bin/pip install -q "pyspark==$SPARK_VER" jupyterlab "pandas<3" pyarrow matplotlib seaborn
+~/venv/bin/pip install -q "pyspark==$SPARK_VER" jupyterlab "pandas<3" pyarrow matplotlib seaborn plotly
 mkdir -p ~/notebooks
 
 echo "== 5. Prueba: Spark sobre YARN =="
