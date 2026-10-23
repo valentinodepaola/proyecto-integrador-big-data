@@ -35,7 +35,7 @@ Todo lo instalado (Hadoop, Spark, Jupyter, datos de HDFS, notebooks) se conserva
 | 2 | Mac | Esperar y ver la IP nueva | `aws ec2 wait instance-running --instance-ids i-0806080a3fc3c8e73 --profile bigdata && aws ec2 describe-instances --instance-ids i-0806080a3fc3c8e73 --profile bigdata --query 'Reservations[0].Instances[0].PublicIpAddress' --output text` |
 | 3 | Mac | Conectarse | `ssh -i ~/.ssh/bigdata ubuntu@<IP>` |
 | 4 | Instancia | Arrancar Hadoop | `start-dfs.sh && start-yarn.sh` |
-| 5 | Instancia | Arrancar historial de Spark y Jupyter | `$SPARK_HOME/sbin/start-history-server.sh && nohup ~/venv/bin/jupyter lab --no-browser --ip=127.0.0.1 --port=8888 --notebook-dir=$HOME/notebooks > ~/jupyter.log 2>&1 &` |
+| 5 | Instancia | Arrancar historial de Spark y Jupyter | `$SPARK_HOME/sbin/start-history-server.sh; nohup ~/venv/bin/jupyter lab --no-browser --ip=127.0.0.1 --port=8888 --notebook-dir=$HOME/notebooks > ~/jupyter.log 2>&1 &` |
 | 6 | Instancia | Comprobar y obtener la URL de Jupyter | `jps; sleep 5; ~/venv/bin/jupyter server list` |
 | 7 | Mac (otra pestaña) | Abrir el túnel | `ssh -i ~/.ssh/bigdata -N -L 9870:localhost:9870 -L 8088:localhost:8088 -L 8888:localhost:8888 -L 4040:localhost:4040 -L 18080:localhost:18080 ubuntu@<IP>` |
 | 8 | Navegador | Abrir Jupyter | La URL del paso 6 |
@@ -50,6 +50,7 @@ Todo lo instalado (Hadoop, Spark, Jupyter, datos de HDFS, notebooks) se conserva
 | 4 | Mac | Cerrar el túnel | `Ctrl + C` en su pestaña |
 | 5 | Mac | Apagar la instancia | `aws ec2 stop-instances --instance-ids i-0806080a3fc3c8e73 --profile bigdata` |
 
+> ⚠️ **No juntes los pasos 4 y 5 en una sola línea con `&` al final.** Así todos los servicios quedan colgados de tu sesión SSH y, cuando la terminal se cierra o se corta, Linux les manda `SIGHUP` y el ResourceManager de YARN se apaga (pasó el 23/10/2026). Solo Jupyter va con `nohup … &`.
 > Si en el paso 3 o 7 SSH se queda colgado (*Connection timed out*), tu IP cambió: corre `cd infra && terraform apply` (sección 4).
 > Si un enlace de Spark o YARN abre `ip-172-31-20-93:...` y no carga, cambia `ip-172-31-20-93` por `localhost` en la URL.
 
@@ -152,6 +153,7 @@ stop-yarn.sh && stop-dfs.sh
 | Python | `~/venv`: PySpark 4.2.0, JupyterLab, pandas 2, pyarrow, matplotlib, seaborn, plotly |
 | Notebooks | `~/notebooks` (los ve Jupyter) |
 | Data lake | `/datalake/raw`, `/processed`, `/curated`, `/quarantine` |
+| Dataset crudo | `/datalake/raw/crimes_2025/fecha=AAAA-MM-DD/Crimes_2025.csv` (+ `_ingesta.json`), cargado con [`scripts/ingesta-raw.sh`](../scripts/ingesta-raw.sh) |
 | Scripts de instalación | [`instalar-hadoop.sh`](../scripts/instalar-hadoop.sh) y luego [`instalar-spark.sh`](../scripts/instalar-spark.sh) (para una instancia nueva) |
 
 ---
