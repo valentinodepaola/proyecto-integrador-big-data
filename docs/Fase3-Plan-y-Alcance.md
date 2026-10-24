@@ -85,8 +85,9 @@ Lalo puede empezar #7 desde ya en su compu con el CSV de 2025 y la plantilla (`n
 | Modelos | `GBTRegressor` contra `RandomForestRegressor`, prediciendo incidentes por zona-turno | Es la pareja que definió la Fase 2 (GBT con Random Forest de contraste) y permite compararlos sobre la misma pregunta |
 | División 80/20 | Por fecha: primeras 80 % de semanas para entrenar, últimas 20 % para probar | Con datos en el tiempo, una división aleatoria deja que el modelo "vea el futuro" |
 | Métricas | RMSE, MAE y R², más tasa de captura y PAI de la Fase 2 | Las técnicas las pide la actividad; las de negocio son las que entiende el mando |
-| Valores atípicos | IQR sobre coordenadas; eliminar solo los imposibles (fuera de Chicago) | Los extremos reales (zonas con muchos delitos) son justo lo que queremos detectar |
-| Exclusiones para modelar | Sin hora imputada; sin NARCOTICS ni WEAPONS VIOLATION | Hora desconocida y sesgo de patrullaje, como en la Fase 2 |
+| Valores atípicos ✅ **decidido** | IQR sobre coordenadas; eliminar solo los imposibles (fuera de Chicago) | Los extremos reales (zonas con muchos delitos) son justo lo que queremos detectar. En A2 no hubo puntos fuera de Chicago; IQR marca unos 1,800 puntos de la longitud, casi todos de O'Hare, y se conservan |
+| Beat 6100 ✅ **decidido** | Se conserva en processed sin ubicación (ward, área y la mayoría de las coordenadas en nulo) y se excluye al armar la zona-turno en A3 | No es una zona real: son unos 320 delitos, casi todos sexuales o contra menores, con la ubicación oculta. Cuentan en las gráficas por tipo y por hora |
+| Exclusiones para modelar | Sin hora imputada; sin NARCOTICS ni WEAPONS VIOLATION; sin beat 6100 | Hora desconocida y sesgo de patrullaje, como en la Fase 2; el beat 6100 no es una zona |
 | 5 preguntas analíticas | (1) dónde se concentran, (2) a qué horas y días, (3) qué tipos predominan, (4) cómo evolucionan en el año, (5) qué tan desigual es la carga entre zonas y turnos | La Fase 2 tiene una sola pregunta general; la actividad pide numerarlas en cada gráfica |
 
 ---
