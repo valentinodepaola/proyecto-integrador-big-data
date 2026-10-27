@@ -2,7 +2,7 @@
 
 Predicción de delitos en Chicago (dónde, cuándo y qué tipo) con datos abiertos del Departamento de Policía. Equipo: Valentino, David (Carlos David) y Lalo (Eduardo).
 
-**Fase actual: 3** — pipeline y modelado con PySpark: preparación de datos (A), dos modelos de SparkML (B) y cinco visualizaciones (C), todo en un solo notebook, más un reporte en Word o PDF. **Entrega: 31 de octubre de 2026.** En esta fase trabajan Valentino (A, B, evidencia) y Lalo (C). La actividad, la rúbrica y las decisiones están en `docs/Fase3-Plan-y-Alcance.md`.
+**Fase actual: 3** — pipeline y modelado con PySpark: preparación de datos (A), dos modelos de SparkML (B) y cinco visualizaciones (C), todo en un solo notebook, más un reporte en Word o PDF. **Entrega: 31 de octubre de 2026.** En esta fase trabajan Valentino (A, B, C y evidencia) y Lalo (reporte). La actividad, la rúbrica y las decisiones están en `docs/Fase3-Plan-y-Alcance.md`.
 
 ## Dónde está cada cosa
 
@@ -35,8 +35,8 @@ Reglas que no se rompen:
 
 ## Flujo de trabajo
 
-1. Lalo prototipa las visualizaciones (sección C) en local con el CSV de 2025 (`LOCAL = True`) y sube su notebook.
-2. Valentino arma `notebooks/fase3_pipeline.ipynb` con A, B y C, lo corre en la instancia (`LOCAL = False`) de inicio a fin y sube el notebook ejecutado.
+1. `notebooks/fase3_pipeline.ipynb` tiene A, B y C. Los cambios se prueban primero en local con el CSV de 2025 (`LOCAL = True`).
+2. La corrida final es en la instancia (`LOCAL = False`), de inicio a fin, y se suben el notebook ejecutado y las figuras de `notebooks/figuras/`.
 3. El notebook final tiene que correr completo sin errores después de reiniciar el kernel.
 
 El dataset limpio (capa processed, tabla `chicago.crimes`) debe tener exactamente las columnas que documenta la plantilla, con fechas en UTC. No modificar `cargar_crimenes()` en las copias de la plantilla.

@@ -68,11 +68,11 @@ En la Fase 2 planteamos una arquitectura objetivo para el escenario multi-ciudad
 | #4 | B1 | Modelo 1: `GBTRegressor` | Valentino | 26 oct | #3 |
 | #5 | B2 | Modelo 2: `RandomForestRegressor` | Valentino | 27 oct | #3 |
 | #6 | B3 | Comparación y elección del modelo | Valentino | 28 oct | #4, #5 |
-| #7 | C | Las 5 visualizaciones | Lalo | 28 oct | #2 |
+| #7 | C | Las 5 visualizaciones | Valentino | 28 oct | #2 |
 | #8 | Evidencia | Capturas de ejecución distribuida | Valentino | 29 oct | #6 |
 | #9 | Entregables | Notebook único y reporte | Valentino y Lalo | 30 oct | #6, #7, #8 |
 
-Lalo puede empezar #7 desde ya en su compu con el CSV de 2025 y la plantilla (`notebooks/README.md`); solo la corrida final necesita #2.
+#7 iba a prototiparlo Lalo en su compu, pero al final Valentino lo escribió directo en el notebook final (26 oct).
 
 ---
 
@@ -96,7 +96,7 @@ Lalo puede empezar #7 desde ya en su compu con el CSV de 2025 y la plantilla (`n
 
 - **Infraestructura completa** (AWS, Terraform, Hadoop, Spark, Jupyter): es el requisito previo de esta fase.
 - **Reglas de limpieza de la Fase 2** (hora imputada, coordenadas con el centro del beat, `DESCONOCIDO`): son la base de A2.
-- **Plantilla de notebooks** ([`notebooks/00_plantilla.ipynb`](../notebooks/00_plantilla.ipynb)): su carga de datos sirve para A1 y A2, y para que Lalo prototipe C en local.
+- **Plantilla de notebooks** ([`notebooks/00_plantilla.ipynb`](../notebooks/00_plantilla.ipynb)): su carga de datos sirve para A1 y A2, y para prototipar análisis en local.
 - **Hipótesis planteadas** (concentración espacial, hora contra día, estacionalidad, hora imputada por tipo): se convierten en preguntas para las visualizaciones.
 - **Cronograma** en [Google Sheets](https://docs.google.com/spreadsheets/d/10YlytnRe1zkorUshp-m4lVZnoRnIBb-bMqZ8wN35ZU4/edit): ya no se califica y quedó desactualizado; el plan vigente es la tabla de arriba y el project.
 

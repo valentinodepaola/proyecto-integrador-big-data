@@ -10,14 +10,14 @@ La plantilla [`00_plantilla.ipynb`](00_plantilla.ipynb) sirve para prototipar en
 |---|---|---|---|
 | A · Preparación (A1 a A4) | Valentino | #1, #2, #3 | `fase3_pipeline.ipynb` |
 | B · Modelado (B1 a B3) | Valentino | #4, #5, #6 | `fase3_pipeline.ipynb` |
-| C · 5 visualizaciones | Lalo | #7 | Prototipo en `C_visualizaciones.ipynb`, luego se copia al notebook final |
+| C · 5 visualizaciones | Valentino | #7 | `fase3_pipeline.ipynb` (figuras en `figuras/`) |
 | Evidencia, notebook final y reporte | Valentino (y Lalo en el reporte) | #8, #9 | `fase3_pipeline.ipynb` |
 
 ## Flujo de trabajo
 
-1. **Lalo desarrolla la sección C en su compu** con el CSV de 2025 (`LOCAL = True`). Corre en segundos y no necesita la instancia.
-2. **Sube su notebook al repo** cuando funcione.
-3. **Valentino lo integra en `fase3_pipeline.ipynb`** y lo corre en la instancia (`LOCAL = False`) con los datos limpios de HDFS.
+1. **Las secciones A, B y C están en `fase3_pipeline.ipynb`.** Antes de prender la instancia se prueban en la compu con el CSV de 2025 (`LOCAL = True`).
+2. **La corrida final es en la instancia** (`LOCAL = False`) con los datos limpios de HDFS, y se sube el notebook ejecutado con sus figuras.
+3. **La plantilla sirve para prototipar** un análisis nuevo en tu compu antes de pasarlo al notebook final.
 
 ## Instalación en tu compu (una sola vez)
 
