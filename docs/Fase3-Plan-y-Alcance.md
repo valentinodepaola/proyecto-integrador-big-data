@@ -102,11 +102,16 @@ En la Fase 2 planteamos una arquitectura objetivo para el escenario multi-ciudad
 
 ---
 
-## Evidencia a recopilar
+## Evidencia
 
-| Para | Capturas |
-|---|---|
-| Entregable 3 (a) | `hdfs dfs -ls` del CSV crudo en `/datalake/raw/` |
-| Entregable 3 (b) | `hdfs dfs -ls` del Parquet en `/datalake/curated/` (y `processed/`) |
-| Entregable 3 (c) | Spark UI con el DAG y las etapas completadas del entrenamiento de un modelo; aplicación en YARN |
-| Contexto de la infraestructura | Terraform, instancia en EC2, `jps`, interfaces de HDFS y YARN, Spark sobre YARN y Jupyter (ya tomadas) |
+Las capturas están en [`evidencia/`](../evidencia/), una carpeta por tipo, con su índice en [`evidencia/README.md`](../evidencia/README.md). El reporte que las usa es el [Google Doc de la Fase 3](https://docs.google.com/document/d/1busfqhp9NKxw8cqSSDjHEdvcW76X-H7xUQmDmYC-Li0/edit).
+
+| Para | Capturas | Carpeta |
+|---|---|---|
+| Entregable 3 (a) | CSV crudo en `/datalake/raw/` (explorador del NameNode y `ingesta-raw.sh`) ✅ | `01_datos_hdfs/` |
+| Entregable 3 (b) | Parquet en `/datalake/processed/` y `/datalake/curated/`, más la cuarentena ✅ | `02_parquet_hdfs/` |
+| Entregable 3 (c) | DAG y etapas del entrenamiento, ejecutores en YARN y aplicación FINISHED en el ResourceManager ✅ | `03_spark_yarn/` |
+| Contexto de la infraestructura | Java y Hadoop, `jps`, HDFS, MapReduce y Spark sobre YARN, PySpark con Hive, Jupyter ✅ (sin Terraform ni EC2) | `04_instalacion/` |
+| Reporte | Salidas del notebook: exploración, limpieza, features, métricas e importancia de variables ✅ | `05_notebook/` |
+
+Además, el notebook termina con la sección "Evidencia de ejecución en el clúster", que imprime el ID de la aplicación en YARN, el master, los ejecutores y el tamaño de cada capa del data lake.
