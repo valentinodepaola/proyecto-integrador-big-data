@@ -18,7 +18,7 @@ docs/        Planes de cada fase y guías de operación
 infra/       Terraform: instancia EC2 en AWS (Hadoop + Spark)
 scripts/     Instalación de Hadoop/Spark e ingesta de datos
 notebooks/   Notebook del pipeline (A, B y C) y plantilla para prototipar en local
-evidencia/   Capturas para el reporte
+evidencia/   Capturas por tipo para el reporte (índice en evidencia/README.md)
 ```
 
 ## Infraestructura
