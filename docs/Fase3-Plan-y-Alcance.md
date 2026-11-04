@@ -5,6 +5,8 @@
 > Tareas: [project de GitHub](https://github.com/users/valentinodepaola/projects/5) (issues #1 a #9, con dependencias)
 > Operación de la instancia: [Guia-Instancia-AWS.md](Guia-Instancia-AWS.md)
 
+> **Fase terminada** (entrega del 31/10/2026). Este documento queda como registro de la Fase 3. La vista general del proyecto, con los resultados y los próximos pasos, está en [Documentacion-General.md](Documentacion-General.md).
+
 > **Replanteado el 22/10/2026.** Las primeras instrucciones que usamos (cronograma, instalar Hadoop y analizar cinco hipótesis) no eran las de esta fase. La actividad real es la de abajo. La infraestructura que ya montamos sirve completa; lo que cambió es el trabajo de análisis.
 
 ---

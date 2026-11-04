@@ -4,17 +4,20 @@ Predicción de delitos en Chicago: dónde, cuándo y qué tipo de delito es más
 
 **Equipo:** Carlos David Gonzalez Davila · Valentino De Paola Gallardo · Eduardo Lopez Uresti
 
+**Vista general del proyecto** (arquitectura, datos, resultados, decisiones y próximos pasos): [docs/Documentacion-General.md](docs/Documentacion-General.md)
+
 ## Fases
 
-| Fase | Contenido | Documento |
-|---|---|---|
-| 2 | Plan CRISP-DM y arquitectura objetivo | [Google Doc](https://docs.google.com/document/d/1j1llfIa9vETELeaJd5Plgcu2zRa5RBDYazHdIkCQM-Q/edit) |
-| 3 | Pipeline y modelado con PySpark: preparación de datos, 2 modelos de SparkML y 5 visualizaciones | [docs/Fase3-Plan-y-Alcance.md](docs/Fase3-Plan-y-Alcance.md) |
+| Fase | Contenido | Estado | Documento |
+|---|---|---|---|
+| 2 | Plan CRISP-DM y arquitectura objetivo | Terminada | [Google Doc](https://docs.google.com/document/d/1j1llfIa9vETELeaJd5Plgcu2zRa5RBDYazHdIkCQM-Q/edit) |
+| 3 | Pipeline y modelado con PySpark: preparación de datos, 2 modelos de SparkML y 5 visualizaciones | Terminada | [docs/Fase3-Plan-y-Alcance.md](docs/Fase3-Plan-y-Alcance.md) |
+| 4 | Resultados e impacto de negocio | Por arrancar | — |
 
 ## Estructura
 
 ```
-docs/        Planes de cada fase y guías de operación
+docs/        Documentación general, planes de cada fase y guía de operación
 infra/       Terraform: instancia EC2 en AWS (Hadoop + Spark)
 scripts/     Instalación de Hadoop/Spark e ingesta de datos
 notebooks/   Notebook del pipeline (A, B y C) y plantilla para prototipar en local

@@ -2,12 +2,13 @@
 
 Predicción de delitos en Chicago (dónde, cuándo y qué tipo) con datos abiertos del Departamento de Policía. Equipo: Valentino, David (Carlos David) y Lalo (Eduardo).
 
-**Fase actual: 3** — pipeline y modelado con PySpark: preparación de datos (A), dos modelos de SparkML (B) y cinco visualizaciones (C), todo en un solo notebook, más un reporte en Word o PDF. **Entrega: 31 de octubre de 2026.** En esta fase trabajan Valentino (A, B, C y evidencia) y Lalo (reporte). La actividad, la rúbrica y las decisiones están en `docs/Fase3-Plan-y-Alcance.md`.
+**Estado: Fase 3 terminada** (entrega del 31 de octubre de 2026); la **Fase 4** (resultados e impacto de negocio) está por arrancar. La vista general del proyecto (arquitectura, datos, resultados, decisiones y próximos pasos) está en `docs/Documentacion-General.md`. Cada fase tiene su propio `docs/FaseN-Plan-y-Alcance.md`; la Fase 3 fue pipeline y modelado con PySpark: preparación de datos (A), dos modelos de SparkML (B) y cinco visualizaciones (C) en un solo notebook, más el reporte.
 
 ## Dónde está cada cosa
 
 | Ruta | Contenido |
 |---|---|
+| `docs/Documentacion-General.md` | Vista general: arquitectura, data lake, pipeline, resultados, decisiones que aplican a todo el proyecto y próximos pasos. Se actualiza al cerrar cada fase |
 | `docs/Fase3-Plan-y-Alcance.md` | Qué pide la Fase 3, plan por issue, decisiones y cómo cambió la infraestructura respecto a la Fase 2 |
 | `docs/Guia-Instancia-AWS.md` | Operación de la instancia: rutina de inicio y cierre, túnel, servicios, problemas comunes |
 | `infra/` | Terraform de la instancia EC2 |
