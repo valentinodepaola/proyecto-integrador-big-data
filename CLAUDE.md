@@ -16,7 +16,7 @@ Predicción de delitos en Chicago (dónde, cuándo y qué tipo) con datos abiert
 | `notebooks/` | Notebook final `fase3_pipeline.ipynb` (secciones A, B y C) y la plantilla `00_plantilla.ipynb` para prototipar en local; reglas en `notebooks/README.md` |
 | `evidencia/` | Capturas para el reporte, una carpeta por tipo; índice en `evidencia/README.md` |
 
-Fuera del repo: Fase 2 en Google Docs, cronograma en Google Sheets (enlaces en `docs/Fase3-Plan-y-Alcance.md`), tareas en el project de GitHub "Proyecto Integrador Big Data — Fase 3" (issues #1 a #9, con dependencias marcadas).
+Fuera del repo: Fase 2 en Google Docs, cronograma en Google Sheets (enlaces en `docs/Fase3-Plan-y-Alcance.md`), tareas en el project de GitHub "Proyecto Integrador Big Data", uno solo para todas las fases (Fase 3: issues #1 a #9; lo que sigue: #19 a #22).
 
 ## Infraestructura
 
