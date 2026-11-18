@@ -76,10 +76,12 @@ Cómo encenderla, arrancar los servicios y apagar todo: [Guia-Instancia-AWS.md](
 
 | Capa | Ruta en HDFS | Tabla Hive | Qué tiene |
 |---|---|---|---|
-| raw | `/datalake/raw/crimes_2025/fecha=<AAAA-MM-DD>/` | — | El CSV tal como lo entrega el portal, más `_ingesta.json` con el conteo contra la API |
+| raw | `/datalake/raw/crimes_<año>/fecha=<AAAA-MM-DD>/` | — | El CSV de cada año (2022 a 2025) tal como lo entrega el portal, más `_ingesta.json` con el conteo contra la API |
 | quarantine | `/datalake/quarantine/crimes_2025/fecha=<AAAA-MM-DD>/` | — | Registros que no se pudieron leer (en la corrida actual, solo el encabezado) |
 | processed | `/datalake/processed/crimes_2025/` | `chicago.crimes` | Incidentes limpios: las 22 columnas de la plantilla, fechas en UTC, banderas `hora_imputada` y `coord_imputada` |
 | curated | `/datalake/curated/zona_turno_2025/` | `chicago.zona_turno` | Una fila por beat × turno de 6 h × semana, con variables de semanas anteriores, la columna `conjunto` y el vector `features` |
+
+Las corridas con varios años (`ANIOS` en el notebook) guardan sus capas aparte con el sufijo de los años: `crimes_2022_2025`, `zona_turno_2022_2025` y las tablas `chicago.crimes_2022_2025` y `chicago.zona_turno_2022_2025`. Cada corrida deja también su tabla de métricas en `/datalake/curated/metricas_<años>/`, que lee la sección B4.
 
 Reglas del dataset limpio: tiene que conservar exactamente las columnas que documenta la plantilla ([`notebooks/00_plantilla.ipynb`](../notebooks/00_plantilla.ipynb)) y no se modifica `cargar_crimenes()`.
 
@@ -87,17 +89,18 @@ Reglas del dataset limpio: tiene que conservar exactamente las columnas que docu
 
 ## 5. Pipeline
 
-Todo vive en un solo notebook, [`notebooks/fase3_pipeline.ipynb`](../notebooks/fase3_pipeline.ipynb), que corre igual en local (`LOCAL = True`) y en el clúster (`LOCAL = False`).
+Todo vive en un solo notebook, [`notebooks/fase3_pipeline.ipynb`](../notebooks/fase3_pipeline.ipynb), que corre igual en local (`LOCAL = True`) y en el clúster (`LOCAL = False`). `ANIOS = [2025]` reproduce la Fase 3; `ANIOS = [2022, 2023, 2024, 2025]` repite todo con cuatro años (issue #20).
 
 | Paso | Qué hace | Resultado |
 |---|---|---|
-| Ingesta | `scripts/ingesta-raw.sh` descarga el CSV y lo sube a raw con la fecha de descarga | 238,174 incidentes |
+| Ingesta | `scripts/ingesta-raw.sh <año>` descarga el CSV de un año y lo sube a raw con la fecha de descarga | 238,174 incidentes |
 | A1 · Exploración | Esquema, estadísticas, tabla variable · tipo · % nulos | 22 columnas |
 | A2 · Limpieza | Nulos según la Fase 2, duplicados exactos, atípicos con IQR sobre coordenadas | No se pierde ningún registro; 2,377 coordenadas imputadas con la mediana del beat; 14,570 horas imputadas marcadas |
 | A3 · Features | Malla zona-turno-semana con ceros, 4 variables de semanas anteriores, `StringIndexer`, `OneHotEncoder`, `StandardScaler`, `VectorAssembler` | 52,608 filas (semanas 4 a 51), vector de 28 posiciones |
 | A4 · Guardado | Parquet en curated y tabla Hive | `chicago.zona_turno` |
 | B1 y B2 · Modelos | `GBTRegressor` y `RandomForestRegressor` con ajuste ligero de hiperparámetros | Métricas técnicas y de negocio |
 | B3 · Comparación | Tabla, comparación semana a semana y elección | Random Forest |
+| B4 · Un año contra cuatro | Junta las métricas de la corrida de 2025 y la de 2022–2025 | Tabla comparativa |
 | C · Visualizaciones | 5 gráficas, una por pregunta analítica | [`notebooks/figuras/`](../notebooks/figuras/) |
 
 ---
@@ -160,7 +163,7 @@ Las decisiones completas, con su justificación, están en [Fase3-Plan-y-Alcance
 - **El historial domina.** Las variables actuales casi no agregan nada sobre el promedio histórico de la zona-turno.
 - **Sin predicción del tipo de delito.** Los modelos cuentan todos los tipos juntos.
 - **Infraestructura de una sola máquina.** YARN tiene 5 GB y Derby admite una sola sesión de Spark a la vez.
-- **Datos que cambian.** El portal sigue modificando 2025; las cifras dependen de la fecha de descarga (`FECHA_RAW`).
+- **Datos que cambian.** El portal sigue modificando 2025; las cifras dependen de la fecha de descarga (`FECHAS_RAW`). Además, el portal retira el 22/12/2026 la URL de descarga que usa `ingesta-raw.sh` (`/api/views/<id>/rows.csv`).
 
 ---
 

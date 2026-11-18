@@ -153,7 +153,7 @@ stop-yarn.sh && stop-dfs.sh
 | Python | `~/venv`: PySpark 4.2.0, JupyterLab, pandas 2, pyarrow, matplotlib, seaborn, plotly |
 | Notebooks | `~/notebooks` (los ve Jupyter) |
 | Data lake | `/datalake/raw`, `/processed`, `/curated`, `/quarantine` |
-| Dataset crudo | `/datalake/raw/crimes_2025/fecha=AAAA-MM-DD/Crimes_2025.csv` (+ `_ingesta.json`), cargado con [`scripts/ingesta-raw.sh`](../scripts/ingesta-raw.sh) |
+| Dataset crudo | `/datalake/raw/crimes_<año>/fecha=AAAA-MM-DD/Crimes_<año>.csv` (+ `_ingesta.json`), de 2022 a 2025, cargado con [`scripts/ingesta-raw.sh <año>`](../scripts/ingesta-raw.sh) (sin año, 2025). La fecha que imprime va en `FECHAS_RAW` del notebook |
 | Scripts de instalación | [`instalar-hadoop.sh`](../scripts/instalar-hadoop.sh) y luego [`instalar-spark.sh`](../scripts/instalar-spark.sh) (para una instancia nueva) |
 
 ---
