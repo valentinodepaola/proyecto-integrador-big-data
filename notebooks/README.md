@@ -17,7 +17,7 @@ La plantilla [`00_plantilla.ipynb`](00_plantilla.ipynb) sirve para prototipar en
 
 1. **Las secciones A, B y C están en `fase3_pipeline.ipynb`.** Antes de prender la instancia se prueban en la compu con el CSV de 2025 (`LOCAL = True`).
 2. **La corrida final es en la instancia** (`LOCAL = False`) con los datos limpios de HDFS, y se sube el notebook ejecutado con sus figuras.
-3. **Años.** `ANIOS = [2025]` reproduce la Fase 3. `ANIOS = [2022, 2023, 2024, 2025]` repite el pipeline con cuatro años (issue #20): sus rutas y tablas llevan el sufijo `_2022_2025` y no pisan las de 2025. La sección B4 junta las métricas de las dos corridas, así que hay que correr el notebook una vez con cada valor.
+3. **Años.** `ANIOS = [2025]` reproduce la Fase 3. `ANIOS = [2022, 2023, 2024, 2025]` repite el pipeline con cuatro años (issue #20): sus rutas y tablas llevan el sufijo `_2022_2025` y no pisan las de 2025. La sección B4 junta las métricas de las dos corridas, así que hay que correr el notebook una vez con cada valor. La corrida ejecutada de cuatro años se guarda aparte como `fase3_pipeline_2022_2025.ipynb`, con sus figuras `C_*_2022_2025_cluster.png`.
 4. **La plantilla sirve para prototipar** un análisis nuevo en tu compu antes de pasarlo al notebook final.
 
 ## Instalación en tu compu (una sola vez)

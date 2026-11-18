@@ -2,7 +2,7 @@
 
 > Proyecto integrador de tecnologías de Big Data · Predicción de delitos en Chicago
 > **Equipo:** Valentino De Paola Gallardo · Carlos David Gonzalez Davila · Eduardo Lopez Uresti
-> Última actualización: 3 de noviembre de 2026
+> Última actualización: 18 de noviembre de 2026
 
 Este documento es la vista de conjunto del proyecto: qué es, cómo está armado, qué resultados tenemos y qué sigue. El detalle de cada fase vive en su propio documento (ver [Mapa de documentos](#mapa-de-documentos)).
 
@@ -128,6 +128,22 @@ Captura máxima posible (si se supiera el futuro): 26.0 %.
 - Las metas de la Fase 2 (captura ≥ 40 %, PAI ≥ 3) no se alcanzan con esta unidad de análisis: ni un modelo perfecto pasa del 26 %.
 - El **tipo de delito** no lo predice ningún modelo; por ahora lo responde la visualización de la pregunta 3.
 
+### Un año contra cuatro (issue #20)
+
+Se repitió todo con 2022 a 2025 (1,002,283 incidentes crudos, 227,968 zonas-turno-semana). Los modelos entrenan con todo lo anterior a la prueba (194 semanas) y se prueban con las mismas 10 semanas de 2025. Corrida en el clúster del 18/11/2026: [`notebooks/fase3_pipeline_2022_2025.ipynb`](../notebooks/fase3_pipeline_2022_2025.ipynb), y la tabla completa en la sección B4 de `fase3_pipeline.ipynb`.
+
+| Modelo | MAE 2025 | MAE 2022–2025 | Captura 2025 | Captura 2022–2025 | Semanas con menor MAE que su promedio histórico (2022–2025) |
+|---|---|---|---|---|---|
+| Promedio histórico | **1.614** | 1.661 | **20.0 %** | 19.5 % | — |
+| Random Forest | 1.642 | 1.655 | 19.8 % | 19.7 % | **8 de 10** |
+| GBT | 1.655 | 1.666 | 19.8 % | 19.7 % | 5 de 10 |
+| Promedio de 4 semanas | 1.722 | 1.722 | 19.0 % | 19.0 % | 3 de 10 |
+
+- **Con cuatro años, Random Forest por fin le gana a su promedio histórico**, en 8 de las 10 semanas de prueba. Con un año no le ganaba en ninguna.
+- **Pero todo queda peor que con un año.** El mejor resultado sigue siendo el promedio histórico de 2025 solo. En 2023 y 2024 hubo más delitos que en 2025 (pregunta 4 con los cuatro años), así que promediar toda la historia sobreestima el final de 2025: lo que más anticipa una zona-turno es su nivel reciente.
+- **Más historia sola no basta.** Hace falta darle al modelo variables que la aprovechen: la semana del año y el retraso de 52 semanas (issue #21), que con cuatro años ya tienen sentido.
+- Un beat (1650) no aparece en todos los años y quedó fuera de la malla (116 incidentes).
+
 ---
 
 ## 7. Hallazgos principales
@@ -148,7 +164,7 @@ Las decisiones completas, con su justificación, están en [Fase3-Plan-y-Alcance
 | Decisión | Valor actual |
 |---|---|
 | Unidad de análisis | Zona-turno: beat × bloque de 6 h × semana de 7 días desde el 1 de enero |
-| División entrenamiento/prueba | Por fecha, nunca aleatoria: semanas 4 a 41 entrenan, 42 a 51 prueban (columna `conjunto`) |
+| División entrenamiento/prueba | Por fecha, nunca aleatoria: las semanas 42 a 51 del último año prueban y todo lo anterior entrena (con 2025: semanas 4 a 41). Columna `conjunto` |
 | Exclusiones para modelar | Hora imputada, NARCOTICS y WEAPONS VIOLATION (sesgo de patrullaje) y beat 6100 (no es una zona real) |
 | Atípicos | IQR sobre coordenadas; solo se eliminan puntos fuera de Chicago. Los extremos reales son la señal que buscamos |
 | Variables | Solo miran semanas anteriores (sin fugas del futuro); el escalado se ajusta solo con entrenamiento |
@@ -159,7 +175,7 @@ Las decisiones completas, con su justificación, están en [Fase3-Plan-y-Alcance
 
 ## 9. Limitaciones conocidas
 
-- **Un solo año de datos.** El modelo no puede aprender estacionalidad, y las semanas de prueba (octubre a diciembre) caen en temporada baja.
+- **Estacionalidad sin variables que la capten.** Con cuatro años el modelo ya ve varios veranos, pero no tiene la semana del año ni el retraso de 52 semanas, así que no la aprovecha (#21). Las semanas de prueba (octubre a diciembre) caen en temporada baja.
 - **El historial domina.** Las variables actuales casi no agregan nada sobre el promedio histórico de la zona-turno.
 - **Sin predicción del tipo de delito.** Los modelos cuentan todos los tipos juntos.
 - **Infraestructura de una sola máquina.** YARN tiene 5 GB y Derby admite una sola sesión de Spark a la vez.
@@ -179,7 +195,7 @@ Ideas en orden de utilidad. Ninguna está comprometida todavía; cuando se decid
 **Mejorar el modelo**
 
 3. Variables nuevas: retrasos de 1, 2 y 52 semanas, actividad en los beats vecinos, días festivos y clima.
-4. Más historia: 2022 a 2025 (más atrás habría que revisar el cambio de zonas de patrullaje de 2012).
+4. ~~Más historia: 2022 a 2025~~ Hecho en #20: ayuda a los modelos frente a su propia referencia, pero no le gana al promedio de 2025 solo (sección 6). Más atrás de 2022 habría que revisar el cambio de zonas de patrullaje de 2012.
 5. Ajuste de hiperparámetros con validación por ventanas de tiempo.
 6. Un modelo de clasificación para el tipo de delito.
 
