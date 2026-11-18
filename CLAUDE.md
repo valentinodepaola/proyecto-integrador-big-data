@@ -12,7 +12,7 @@ Predicción de delitos en Chicago (dónde, cuándo y qué tipo) con datos abiert
 | `docs/Fase3-Plan-y-Alcance.md` | Qué pide la Fase 3, plan por issue, decisiones y cómo cambió la infraestructura respecto a la Fase 2 |
 | `docs/Guia-Instancia-AWS.md` | Operación de la instancia: rutina de inicio y cierre, túnel, servicios, problemas comunes |
 | `infra/` | Terraform de la instancia EC2 |
-| `scripts/` | `instalar-hadoop.sh` e `instalar-spark.sh` (reinstalación en una instancia nueva) e `ingesta-raw.sh` (descarga el CSV de 2025 a la capa raw de HDFS) |
+| `scripts/` | `instalar-hadoop.sh` e `instalar-spark.sh` (reinstalación en una instancia nueva) e `ingesta-raw.sh <año>` (descarga el CSV de un año, de 2022 a 2025, a la capa raw de HDFS) |
 | `notebooks/` | Notebook final `fase3_pipeline.ipynb` (secciones A, B y C) y la plantilla `00_plantilla.ipynb` para prototipar en local; reglas en `notebooks/README.md` |
 | `evidencia/` | Capturas para el reporte, una carpeta por tipo; índice en `evidencia/README.md` |
 
@@ -23,7 +23,7 @@ Fuera del repo: Fase 2 en Google Docs, cronograma en Google Sheets (enlaces en `
 - AWS, cuenta personal de Valentino en plan gratuito, región `us-east-1`. **Usar siempre `--profile bigdata`**: el perfil `default` de la Mac es de otra cuenta.
 - Una instancia EC2 `m7i-flex.large` (`i-0806080a3fc3c8e73`), Ubuntu 24.04, usuario `ubuntu`, llave `~/.ssh/bigdata`. La IP pública cambia en cada encendido.
 - Stack: Java 17, Hadoop 3.5.0 (HDFS + YARN pseudo-distribuido), Spark 4.2.0 sobre YARN, catálogo Hive con metastore Derby, JupyterLab en `~/venv`.
-- Data lake en HDFS: `/datalake/{raw,processed,curated,quarantine}`. Tablas en la base Hive `chicago`. El CSV crudo está en `/datalake/raw/crimes_2025/fecha=<fecha de descarga>/`; el notebook lo lee según `FECHA_RAW`.
+- Data lake en HDFS: `/datalake/{raw,processed,curated,quarantine}`. Tablas en la base Hive `chicago`. El CSV crudo de cada año está en `/datalake/raw/crimes_<año>/fecha=<fecha de descarga>/`; el notebook lo lee según `ANIOS` y `FECHAS_RAW`. `ANIOS = [2025]` reproduce la Fase 3 (tablas `chicago.crimes` y `chicago.zona_turno`); con 2022 a 2025 las rutas y tablas llevan el sufijo `_2022_2025`.
 
 Reglas que no se rompen:
 

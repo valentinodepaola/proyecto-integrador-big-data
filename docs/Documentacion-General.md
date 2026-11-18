@@ -77,7 +77,7 @@ Cómo encenderla, arrancar los servicios y apagar todo: [Guia-Instancia-AWS.md](
 | Capa | Ruta en HDFS | Tabla Hive | Qué tiene |
 |---|---|---|---|
 | raw | `/datalake/raw/crimes_<año>/fecha=<AAAA-MM-DD>/` | — | El CSV de cada año (2022 a 2025) tal como lo entrega el portal, más `_ingesta.json` con el conteo contra la API |
-| quarantine | `/datalake/quarantine/crimes_2025/fecha=<AAAA-MM-DD>/` | — | Registros que no se pudieron leer (en la corrida actual, solo el encabezado) |
+| quarantine | `/datalake/quarantine/crimes_<años>/fecha=<AAAA-MM-DD>/` | — | Registros que no se pudieron leer (en la corrida actual, solo el encabezado) |
 | processed | `/datalake/processed/crimes_2025/` | `chicago.crimes` | Incidentes limpios: las 22 columnas de la plantilla, fechas en UTC, banderas `hora_imputada` y `coord_imputada` |
 | curated | `/datalake/curated/zona_turno_2025/` | `chicago.zona_turno` | Una fila por beat × turno de 6 h × semana, con variables de semanas anteriores, la columna `conjunto` y el vector `features` |
 
