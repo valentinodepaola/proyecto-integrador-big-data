@@ -154,6 +154,7 @@ stop-yarn.sh && stop-dfs.sh
 | Notebooks | `~/notebooks` (los ve Jupyter) |
 | Data lake | `/datalake/raw`, `/processed`, `/curated`, `/quarantine` |
 | Dataset crudo | `/datalake/raw/crimes_<año>/fecha=AAAA-MM-DD/Crimes_<año>.csv` (+ `_ingesta.json`), de 2022 a 2025, cargado con [`scripts/ingesta-raw.sh <año>`](../scripts/ingesta-raw.sh) (sin año, 2025). La fecha que imprime va en `FECHAS_RAW` del notebook |
+| Clima | `/datalake/raw/clima_ohare/fecha=AAAA-MM-DD/clima_ohare.csv`, cargado con [`scripts/ingesta-clima.sh`](../scripts/ingesta-clima.sh). La fecha va en `FECHA_CLIMA` de `variables_nuevas.ipynb` |
 | Scripts de instalación | [`instalar-hadoop.sh`](../scripts/instalar-hadoop.sh) y luego [`instalar-spark.sh`](../scripts/instalar-spark.sh) (para una instancia nueva) |
 
 ---

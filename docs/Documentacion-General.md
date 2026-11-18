@@ -2,7 +2,7 @@
 
 > Proyecto integrador de tecnologías de Big Data · Predicción de delitos en Chicago
 > **Equipo:** Valentino De Paola Gallardo · Carlos David Gonzalez Davila · Eduardo Lopez Uresti
-> Última actualización: 18 de noviembre de 2026
+> Última actualización: 18 de noviembre de 2026 (issues #20 y #21)
 
 Este documento es la vista de conjunto del proyecto: qué es, cómo está armado, qué resultados tenemos y qué sigue. El detalle de cada fase vive en su propio documento (ver [Mapa de documentos](#mapa-de-documentos)).
 
@@ -80,6 +80,8 @@ Cómo encenderla, arrancar los servicios y apagar todo: [Guia-Instancia-AWS.md](
 | quarantine | `/datalake/quarantine/crimes_<años>/fecha=<AAAA-MM-DD>/` | — | Registros que no se pudieron leer (en la corrida actual, solo el encabezado) |
 | processed | `/datalake/processed/crimes_2025/` | `chicago.crimes` | Incidentes limpios: las 22 columnas de la plantilla, fechas en UTC, banderas `hora_imputada` y `coord_imputada` |
 | curated | `/datalake/curated/zona_turno_2025/` | `chicago.zona_turno` | Una fila por beat × turno de 6 h × semana, con variables de semanas anteriores, la columna `conjunto` y el vector `features` |
+| curated | `/datalake/curated/zona_turno_variables_2022_2025/` | `chicago.zona_turno_variables_2022_2025` | La tabla zona-turno de 2022 a 2025 con las variables nuevas del #21 (retrasos, estacionalidad, vecinos, festivos y clima), desde la semana 4 de 2023 |
+| raw | `/datalake/raw/clima_ohare/fecha=<AAAA-MM-DD>/` | — | Clima diario de O'Hare de 2022 a 2025 (Open-Meteo), cargado con `scripts/ingesta-clima.sh` |
 
 Las corridas con varios años (`ANIOS` en el notebook) guardan sus capas aparte con el sufijo de los años: `crimes_2022_2025`, `zona_turno_2022_2025` y las tablas `chicago.crimes_2022_2025` y `chicago.zona_turno_2022_2025`. Cada corrida deja también su tabla de métricas en `/datalake/curated/metricas_<años>/`, que lee la sección B4.
 
@@ -144,6 +146,24 @@ Se repitió todo con 2022 a 2025 (1,002,283 incidentes crudos, 227,968 zonas-tur
 - **Más historia sola no basta.** Hace falta darle al modelo variables que la aprovechen: la semana del año y el retraso de 52 semanas (issue #21), que con cuatro años ya tienen sentido.
 - Un beat (1650) no aparece en todos los años y quedó fuera de la malla (116 incidentes).
 
+### Variables nuevas (issue #21)
+
+Sobre la tabla de 2022 a 2025 se agregaron cinco grupos de variables y se midió cada uno con Random Forest (mismos hiperparámetros, mismas filas desde la semana 4 de 2023 y mismas semanas de prueba). Detalle en [`notebooks/variables_nuevas.ipynb`](../notebooks/variables_nuevas.ipynb), corrida en el clúster del 18/11/2026.
+
+| Modelo | MAE | Captura | Semanas con menor MAE que el promedio histórico |
+|---|---|---|---|
+| **Random Forest con variables nuevas** | **1.585** | 19.9 % | **10 de 10** |
+| Promedio de las últimas 52 semanas (regla simple) | 1.609 | 20.0 % | — |
+| Random Forest de la Fase 3, mismas filas | 1.643 | 19.6 % | 8 de 10 |
+| Promedio histórico | 1.661 | 19.5 % | — |
+
+Lo que aporta cada grupo por separado, sobre el MAE de 1.643 de la base: retrasos (hace 2 y 52 semanas y promedio de 52 semanas) lo bajan a 1.614, estacionalidad a 1.622, vecinos a 1.635 y festivos a 1.642. El clima real de la semana lo baja a 1.606 solo y a 1.574 con todo, pero es optimista: en la práctica haría falta un pronóstico.
+
+- **El modelo por fin le gana al promedio histórico**, en las 10 semanas de prueba, y también al promedio histórico de 2025 solo (1.614), que era lo mejor hasta ahora.
+- **La clave fue olvidar los años viejos.** `promedio_52_semanas` pesa casi el 40 % del modelo. Esa misma regla, sin modelo, ya tiene MAE de 1.609; Random Forest le gana en 8 de 10 semanas, por 0.024 incidentes.
+- **La captura casi no se mueve** (19.9 %, el 76 % del máximo posible): bajar el error medio no cambia mucho cuáles son el 10 % de zonas-turno más activas.
+- El ajuste con tres ventanas de tiempo volvió a elegir 8 de profundidad y 50 árboles.
+
 ---
 
 ## 7. Hallazgos principales
@@ -176,7 +196,7 @@ Las decisiones completas, con su justificación, están en [Fase3-Plan-y-Alcance
 ## 9. Limitaciones conocidas
 
 - **Estacionalidad sin variables que la capten.** Con cuatro años el modelo ya ve varios veranos, pero no tiene la semana del año ni el retraso de 52 semanas, así que no la aprovecha (#21). Las semanas de prueba (octubre a diciembre) caen en temporada baja.
-- **El historial domina.** Las variables actuales casi no agregan nada sobre el promedio histórico de la zona-turno.
+- **El historial reciente domina.** Con las variables del #21 el modelo le gana al promedio histórico, pero casi toda su fuerza viene de promedios de la propia zona-turno: la regla de 52 semanas sola queda a 0.024 de MAE del modelo.
 - **Sin predicción del tipo de delito.** Los modelos cuentan todos los tipos juntos.
 - **Infraestructura de una sola máquina.** YARN tiene 5 GB y Derby admite una sola sesión de Spark a la vez.
 - **Datos que cambian.** El portal sigue modificando 2025; las cifras dependen de la fecha de descarga (`FECHAS_RAW`). Además, el portal retira el 22/12/2026 la URL de descarga que usa `ingesta-raw.sh` (`/api/views/<id>/rows.csv`).
@@ -194,9 +214,9 @@ Ideas en orden de utilidad. Ninguna está comprometida todavía; cuando se decid
 
 **Mejorar el modelo**
 
-3. Variables nuevas: retrasos de 1, 2 y 52 semanas, actividad en los beats vecinos, días festivos y clima.
+3. ~~Variables nuevas~~ Hecho en #21: el modelo ya le gana al promedio histórico (sección 6). El clima solo serviría con un pronóstico real.
 4. ~~Más historia: 2022 a 2025~~ Hecho en #20: ayuda a los modelos frente a su propia referencia, pero no le gana al promedio de 2025 solo (sección 6). Más atrás de 2022 habría que revisar el cambio de zonas de patrullaje de 2012.
-5. Ajuste de hiperparámetros con validación por ventanas de tiempo.
+5. ~~Ajuste con ventanas de tiempo~~ Hecho en #21: confirmó 8 de profundidad y 50 árboles.
 6. Un modelo de clasificación para el tipo de delito.
 
 **Arquitectura que quedó fuera de la Fase 2**
