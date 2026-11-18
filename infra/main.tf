@@ -67,4 +67,11 @@ resource "aws_instance" "hadoop" {
   tags = {
     Name = "hadoop-bigdata"
   }
+
+  # La AMI se busca como "la Ubuntu 24.04 más reciente"; cuando Canonical publica una nueva,
+  # Terraform reemplazaría la instancia (y se perdería HDFS). Se ignora para que la instancia
+  # solo se recree a propósito (terraform apply -replace=aws_instance.hadoop).
+  lifecycle {
+    ignore_changes = [ami]
+  }
 }
