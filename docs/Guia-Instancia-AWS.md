@@ -51,7 +51,7 @@ Todo lo instalado (Hadoop, Spark, Jupyter, datos de HDFS, notebooks) se conserva
 | 5 | Mac | Apagar la instancia | `aws ec2 stop-instances --instance-ids i-0806080a3fc3c8e73 --profile bigdata` |
 
 > ⚠️ **No juntes los pasos 4 y 5 en una sola línea con `&` al final.** Así todos los servicios quedan colgados de tu sesión SSH y, cuando la terminal se cierra o se corta, Linux les manda `SIGHUP` y el ResourceManager de YARN se apaga (pasó el 23/10/2026). Solo Jupyter va con `nohup … &`.
-> Si en el paso 3 o 7 SSH se queda colgado (*Connection timed out*), tu IP cambió: corre `cd infra && terraform apply` (sección 4).
+> Si en el paso 3 o 7 SSH se queda colgado (*Connection timed out*), tu IP cambió: corre `cd infra && terraform apply -target=aws_security_group.hadoop` (sección 4).
 > Si un enlace de Spark o YARN abre `ip-172-31-20-93:...` y no carga, cambia `ip-172-31-20-93` por `localhost` en la URL.
 
 Las secciones siguientes explican cada paso con más detalle.
@@ -240,7 +240,7 @@ Y le manda a Valentino **solo** el contenido de `~/.ssh/bigdata.pub` (la públic
    ```hcl
    extra_ssh_cidrs = ["201.x.x.x/32", "189.x.x.x/32"]
    ```
-3. Aplicar: `cd infra && terraform apply`.
+3. Aplicar: `cd infra && terraform apply -target=aws_security_group.hadoop`, revisando que el plan solo cambie el grupo de seguridad.
 
 > Solo Valentino puede encender y detener la instancia (tiene las credenciales de AWS). Hay que coordinar quién la apaga al terminar.
 
