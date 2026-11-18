@@ -17,7 +17,8 @@ La plantilla [`00_plantilla.ipynb`](00_plantilla.ipynb) sirve para prototipar en
 
 1. **Las secciones A, B y C están en `fase3_pipeline.ipynb`.** Antes de prender la instancia se prueban en la compu con el CSV de 2025 (`LOCAL = True`).
 2. **La corrida final es en la instancia** (`LOCAL = False`) con los datos limpios de HDFS, y se sube el notebook ejecutado con sus figuras.
-3. **La plantilla sirve para prototipar** un análisis nuevo en tu compu antes de pasarlo al notebook final.
+3. **Años.** `ANIOS = [2025]` reproduce la Fase 3. `ANIOS = [2022, 2023, 2024, 2025]` repite el pipeline con cuatro años (issue #20): sus rutas y tablas llevan el sufijo `_2022_2025` y no pisan las de 2025. La sección B4 junta las métricas de las dos corridas, así que hay que correr el notebook una vez con cada valor. La corrida ejecutada de cuatro años se guarda aparte como `fase3_pipeline_2022_2025.ipynb`, con sus figuras `C_*_2022_2025_cluster.png`.
+4. **La plantilla sirve para prototipar** un análisis nuevo en tu compu antes de pasarlo al notebook final.
 
 ## Instalación en tu compu (una sola vez)
 
@@ -38,14 +39,19 @@ pip install "pyspark==4.2.0" "pandas<3" pyarrow matplotlib seaborn plotly jupyte
 
 > Se usa `pandas<3` porque PySpark 4.2 todavía no soporta pandas 3.
 
-**3. El CSV de 2025** (unos 58 MB) en la carpeta `data/` del repo. Esa carpeta no se sube a GitHub.
+**3. Los CSV** (unos 58 MB por año) en la carpeta `data/` del repo. Esa carpeta no se sube a GitHub. Para la Fase 3 basta 2025; para la corrida de cuatro años hacen falta también 2022, 2023 y 2024.
 
 ```bash
 mkdir -p data
 curl -L -o data/Crimes_2025.csv "https://data.cityofchicago.org/api/views/t7ek-mgzi/rows.csv?accessType=DOWNLOAD"
+curl -L -o data/Crimes_2024.csv "https://data.cityofchicago.org/api/views/dqcy-ctma/rows.csv?accessType=DOWNLOAD"
+curl -L -o data/Crimes_2023.csv "https://data.cityofchicago.org/api/views/xguy-4ndq/rows.csv?accessType=DOWNLOAD"
+curl -L -o data/Crimes_2022.csv "https://data.cityofchicago.org/api/views/9hwr-2zxp/rows.csv?accessType=DOWNLOAD"
 ```
 
-En Windows también se puede abrir esa URL en el navegador y guardar el archivo como `data/Crimes_2025.csv`.
+En Windows también se puede abrir cada URL en el navegador y guardar el archivo como `data/Crimes_<año>.csv`.
+
+> En Mac, si Spark falla al arrancar con *Can't assign requested address: Service 'sparkDriver'*, abre Jupyter con `SPARK_LOCAL_IP=127.0.0.1 jupyter lab`. Si tienes varias versiones de Java, usa la 21: `export JAVA_HOME=$(/usr/libexec/java_home -v 21)`.
 
 ## Uso de la plantilla
 
@@ -72,7 +78,7 @@ Con la instancia encendida y los servicios arriba (ver la rutina en [`docs/Guia-
 # Mac → instancia
 rsync -avz -e "ssh -i ~/.ssh/bigdata" --exclude figuras notebooks/ ubuntu@<IP>:~/notebooks/
 
-# En Jupyter: abrir el notebook, poner LOCAL = False y correr todo
+# En Jupyter: abrir el notebook, poner LOCAL = False (y ANIOS) y correr todo
 
 # Instancia → Mac (notebooks ejecutados y figuras)
 rsync -avz -e "ssh -i ~/.ssh/bigdata" ubuntu@<IP>:~/notebooks/ notebooks/

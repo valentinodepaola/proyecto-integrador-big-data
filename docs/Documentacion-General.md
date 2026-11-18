@@ -2,7 +2,7 @@
 
 > Proyecto integrador de tecnologías de Big Data · Predicción de delitos en Chicago
 > **Equipo:** Valentino De Paola Gallardo · Carlos David Gonzalez Davila · Eduardo Lopez Uresti
-> Última actualización: 3 de noviembre de 2026
+> Última actualización: 18 de noviembre de 2026
 
 Este documento es la vista de conjunto del proyecto: qué es, cómo está armado, qué resultados tenemos y qué sigue. El detalle de cada fase vive en su propio documento (ver [Mapa de documentos](#mapa-de-documentos)).
 
@@ -76,10 +76,12 @@ Cómo encenderla, arrancar los servicios y apagar todo: [Guia-Instancia-AWS.md](
 
 | Capa | Ruta en HDFS | Tabla Hive | Qué tiene |
 |---|---|---|---|
-| raw | `/datalake/raw/crimes_2025/fecha=<AAAA-MM-DD>/` | — | El CSV tal como lo entrega el portal, más `_ingesta.json` con el conteo contra la API |
-| quarantine | `/datalake/quarantine/crimes_2025/fecha=<AAAA-MM-DD>/` | — | Registros que no se pudieron leer (en la corrida actual, solo el encabezado) |
+| raw | `/datalake/raw/crimes_<año>/fecha=<AAAA-MM-DD>/` | — | El CSV de cada año (2022 a 2025) tal como lo entrega el portal, más `_ingesta.json` con el conteo contra la API |
+| quarantine | `/datalake/quarantine/crimes_<años>/fecha=<AAAA-MM-DD>/` | — | Registros que no se pudieron leer (en la corrida actual, solo el encabezado) |
 | processed | `/datalake/processed/crimes_2025/` | `chicago.crimes` | Incidentes limpios: las 22 columnas de la plantilla, fechas en UTC, banderas `hora_imputada` y `coord_imputada` |
 | curated | `/datalake/curated/zona_turno_2025/` | `chicago.zona_turno` | Una fila por beat × turno de 6 h × semana, con variables de semanas anteriores, la columna `conjunto` y el vector `features` |
+
+Las corridas con varios años (`ANIOS` en el notebook) guardan sus capas aparte con el sufijo de los años: `crimes_2022_2025`, `zona_turno_2022_2025` y las tablas `chicago.crimes_2022_2025` y `chicago.zona_turno_2022_2025`. Cada corrida deja también su tabla de métricas en `/datalake/curated/metricas_<años>/`, que lee la sección B4.
 
 Reglas del dataset limpio: tiene que conservar exactamente las columnas que documenta la plantilla ([`notebooks/00_plantilla.ipynb`](../notebooks/00_plantilla.ipynb)) y no se modifica `cargar_crimenes()`.
 
@@ -87,17 +89,18 @@ Reglas del dataset limpio: tiene que conservar exactamente las columnas que docu
 
 ## 5. Pipeline
 
-Todo vive en un solo notebook, [`notebooks/fase3_pipeline.ipynb`](../notebooks/fase3_pipeline.ipynb), que corre igual en local (`LOCAL = True`) y en el clúster (`LOCAL = False`).
+Todo vive en un solo notebook, [`notebooks/fase3_pipeline.ipynb`](../notebooks/fase3_pipeline.ipynb), que corre igual en local (`LOCAL = True`) y en el clúster (`LOCAL = False`). `ANIOS = [2025]` reproduce la Fase 3; `ANIOS = [2022, 2023, 2024, 2025]` repite todo con cuatro años (issue #20).
 
 | Paso | Qué hace | Resultado |
 |---|---|---|
-| Ingesta | `scripts/ingesta-raw.sh` descarga el CSV y lo sube a raw con la fecha de descarga | 238,174 incidentes |
+| Ingesta | `scripts/ingesta-raw.sh <año>` descarga el CSV de un año y lo sube a raw con la fecha de descarga | 238,174 incidentes |
 | A1 · Exploración | Esquema, estadísticas, tabla variable · tipo · % nulos | 22 columnas |
 | A2 · Limpieza | Nulos según la Fase 2, duplicados exactos, atípicos con IQR sobre coordenadas | No se pierde ningún registro; 2,377 coordenadas imputadas con la mediana del beat; 14,570 horas imputadas marcadas |
 | A3 · Features | Malla zona-turno-semana con ceros, 4 variables de semanas anteriores, `StringIndexer`, `OneHotEncoder`, `StandardScaler`, `VectorAssembler` | 52,608 filas (semanas 4 a 51), vector de 28 posiciones |
 | A4 · Guardado | Parquet en curated y tabla Hive | `chicago.zona_turno` |
 | B1 y B2 · Modelos | `GBTRegressor` y `RandomForestRegressor` con ajuste ligero de hiperparámetros | Métricas técnicas y de negocio |
 | B3 · Comparación | Tabla, comparación semana a semana y elección | Random Forest |
+| B4 · Un año contra cuatro | Junta las métricas de la corrida de 2025 y la de 2022–2025 | Tabla comparativa |
 | C · Visualizaciones | 5 gráficas, una por pregunta analítica | [`notebooks/figuras/`](../notebooks/figuras/) |
 
 ---
@@ -125,6 +128,22 @@ Captura máxima posible (si se supiera el futuro): 26.0 %.
 - Las metas de la Fase 2 (captura ≥ 40 %, PAI ≥ 3) no se alcanzan con esta unidad de análisis: ni un modelo perfecto pasa del 26 %.
 - El **tipo de delito** no lo predice ningún modelo; por ahora lo responde la visualización de la pregunta 3.
 
+### Un año contra cuatro (issue #20)
+
+Se repitió todo con 2022 a 2025 (1,002,283 incidentes crudos, 227,968 zonas-turno-semana). Los modelos entrenan con todo lo anterior a la prueba (194 semanas) y se prueban con las mismas 10 semanas de 2025. Corrida en el clúster del 18/11/2026: [`notebooks/fase3_pipeline_2022_2025.ipynb`](../notebooks/fase3_pipeline_2022_2025.ipynb), y la tabla completa en la sección B4 de `fase3_pipeline.ipynb`.
+
+| Modelo | MAE 2025 | MAE 2022–2025 | Captura 2025 | Captura 2022–2025 | Semanas con menor MAE que su promedio histórico (2022–2025) |
+|---|---|---|---|---|---|
+| Promedio histórico | **1.614** | 1.661 | **20.0 %** | 19.5 % | — |
+| Random Forest | 1.642 | 1.655 | 19.8 % | 19.7 % | **8 de 10** |
+| GBT | 1.655 | 1.666 | 19.8 % | 19.7 % | 5 de 10 |
+| Promedio de 4 semanas | 1.722 | 1.722 | 19.0 % | 19.0 % | 3 de 10 |
+
+- **Con cuatro años, Random Forest por fin le gana a su promedio histórico**, en 8 de las 10 semanas de prueba. Con un año no le ganaba en ninguna.
+- **Pero todo queda peor que con un año.** El mejor resultado sigue siendo el promedio histórico de 2025 solo. En 2023 y 2024 hubo más delitos que en 2025 (pregunta 4 con los cuatro años), así que promediar toda la historia sobreestima el final de 2025: lo que más anticipa una zona-turno es su nivel reciente.
+- **Más historia sola no basta.** Hace falta darle al modelo variables que la aprovechen: la semana del año y el retraso de 52 semanas (issue #21), que con cuatro años ya tienen sentido.
+- Un beat (1650) no aparece en todos los años y quedó fuera de la malla (116 incidentes).
+
 ---
 
 ## 7. Hallazgos principales
@@ -145,7 +164,7 @@ Las decisiones completas, con su justificación, están en [Fase3-Plan-y-Alcance
 | Decisión | Valor actual |
 |---|---|
 | Unidad de análisis | Zona-turno: beat × bloque de 6 h × semana de 7 días desde el 1 de enero |
-| División entrenamiento/prueba | Por fecha, nunca aleatoria: semanas 4 a 41 entrenan, 42 a 51 prueban (columna `conjunto`) |
+| División entrenamiento/prueba | Por fecha, nunca aleatoria: las semanas 42 a 51 del último año prueban y todo lo anterior entrena (con 2025: semanas 4 a 41). Columna `conjunto` |
 | Exclusiones para modelar | Hora imputada, NARCOTICS y WEAPONS VIOLATION (sesgo de patrullaje) y beat 6100 (no es una zona real) |
 | Atípicos | IQR sobre coordenadas; solo se eliminan puntos fuera de Chicago. Los extremos reales son la señal que buscamos |
 | Variables | Solo miran semanas anteriores (sin fugas del futuro); el escalado se ajusta solo con entrenamiento |
@@ -156,11 +175,11 @@ Las decisiones completas, con su justificación, están en [Fase3-Plan-y-Alcance
 
 ## 9. Limitaciones conocidas
 
-- **Un solo año de datos.** El modelo no puede aprender estacionalidad, y las semanas de prueba (octubre a diciembre) caen en temporada baja.
+- **Estacionalidad sin variables que la capten.** Con cuatro años el modelo ya ve varios veranos, pero no tiene la semana del año ni el retraso de 52 semanas, así que no la aprovecha (#21). Las semanas de prueba (octubre a diciembre) caen en temporada baja.
 - **El historial domina.** Las variables actuales casi no agregan nada sobre el promedio histórico de la zona-turno.
 - **Sin predicción del tipo de delito.** Los modelos cuentan todos los tipos juntos.
 - **Infraestructura de una sola máquina.** YARN tiene 5 GB y Derby admite una sola sesión de Spark a la vez.
-- **Datos que cambian.** El portal sigue modificando 2025; las cifras dependen de la fecha de descarga (`FECHA_RAW`).
+- **Datos que cambian.** El portal sigue modificando 2025; las cifras dependen de la fecha de descarga (`FECHAS_RAW`). Además, el portal retira el 22/12/2026 la URL de descarga que usa `ingesta-raw.sh` (`/api/views/<id>/rows.csv`).
 
 ---
 
@@ -176,7 +195,7 @@ Ideas en orden de utilidad. Ninguna está comprometida todavía; cuando se decid
 **Mejorar el modelo**
 
 3. Variables nuevas: retrasos de 1, 2 y 52 semanas, actividad en los beats vecinos, días festivos y clima.
-4. Más historia: 2022 a 2025 (más atrás habría que revisar el cambio de zonas de patrullaje de 2012).
+4. ~~Más historia: 2022 a 2025~~ Hecho en #20: ayuda a los modelos frente a su propia referencia, pero no le gana al promedio de 2025 solo (sección 6). Más atrás de 2022 habría que revisar el cambio de zonas de patrullaje de 2012.
 5. Ajuste de hiperparámetros con validación por ventanas de tiempo.
 6. Un modelo de clasificación para el tipo de delito.
 
