@@ -51,7 +51,7 @@ Todo lo instalado (Hadoop, Spark, Jupyter, datos de HDFS, notebooks) se conserva
 | 5 | Mac | Apagar la instancia | `aws ec2 stop-instances --instance-ids i-0806080a3fc3c8e73 --profile bigdata` |
 
 > ⚠️ **No juntes los pasos 4 y 5 en una sola línea con `&` al final.** Así todos los servicios quedan colgados de tu sesión SSH y, cuando la terminal se cierra o se corta, Linux les manda `SIGHUP` y el ResourceManager de YARN se apaga (pasó el 23/10/2026). Solo Jupyter va con `nohup … &`.
-> Si en el paso 3 o 7 SSH se queda colgado (*Connection timed out*), tu IP cambió: corre `cd infra && terraform apply` (sección 4).
+> Si en el paso 3 o 7 SSH se queda colgado (*Connection timed out*), tu IP cambió: corre `cd infra && terraform apply -target=aws_security_group.hadoop` (sección 4).
 > Si un enlace de Spark o YARN abre `ip-172-31-20-93:...` y no carga, cambia `ip-172-31-20-93` por `localhost` en la URL.
 
 Las secciones siguientes explican cada paso con más detalle.
@@ -160,14 +160,16 @@ stop-yarn.sh && stop-dfs.sh
 
 ## 4. Si cambias de red (casa, uni, datos del celular)
 
-El SSH solo acepta las IPs registradas. Si te conectas desde otra red, `ssh` se queda esperando y termina con *Connection timed out*. Para registrar tu IP nueva:
+El SSH solo acepta las IPs registradas. Si te conectas desde otra red, `ssh` termina con *Connection timed out* o *Connection refused*. Para registrar tu IP nueva:
 
 ```bash
 cd infra
-terraform apply
+terraform apply -target=aws_security_group.hadoop
 ```
 
-Terraform detecta tu IP actual y actualiza la regla del grupo de seguridad (no toca la instancia ni sus datos). Revisa que el plan solo diga `~ update in-place` en `aws_security_group.hadoop` antes de confirmar con `yes`.
+Terraform detecta tu IP actual y actualiza solo la regla del grupo de seguridad. Antes de confirmar con `yes`, revisa que el plan diga `Plan: 0 to add, 1 to change, 0 to destroy` y que el cambio sea la IP en `aws_security_group.hadoop`.
+
+> ⚠️ **Si un plan dice `must be replaced` o `destroy` en `aws_instance.hadoop`, no lo confirmes:** recrear la instancia borra HDFS y todo lo instalado. Desde el 18/11/2026 `infra/main.tf` ignora los cambios de AMI (Ubuntu publica una nueva cada pocas semanas y antes eso forzaba el reemplazo), pero el `-target` evita cualquier sorpresa.
 
 ---
 
@@ -238,7 +240,7 @@ Y le manda a Valentino **solo** el contenido de `~/.ssh/bigdata.pub` (la públic
    ```hcl
    extra_ssh_cidrs = ["201.x.x.x/32", "189.x.x.x/32"]
    ```
-3. Aplicar: `cd infra && terraform apply`.
+3. Aplicar: `cd infra && terraform apply -target=aws_security_group.hadoop`, revisando que el plan solo cambie el grupo de seguridad.
 
 > Solo Valentino puede encender y detener la instancia (tiene las credenciales de AWS). Hay que coordinar quién la apaga al terminar.
 
@@ -266,7 +268,8 @@ Desde la carpeta `infra/`:
 | Comando | Qué hace |
 |---|---|
 | `terraform plan` | Muestra qué cambiaría, **sin hacer nada** |
-| `terraform apply` | Crea o actualiza lo que falte (pide confirmar con `yes`) |
+| `terraform apply` | Crea o actualiza lo que falte (pide confirmar con `yes`). Lee el plan antes: nunca confirmes un `must be replaced` de la instancia |
+| `terraform apply -replace=aws_instance.hadoop` | Recrea la instancia a propósito, con la AMI de Ubuntu más reciente (llega vacía) |
 | `terraform output` | Muestra ID, IP y comando ssh guardados* |
 | `terraform destroy` | **Borra todo**: instancia, disco, grupo de seguridad y llave |
 
@@ -282,10 +285,11 @@ Desde la carpeta `infra/`:
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
-| `ssh` se queda colgado / *Connection timed out* | Tu IP cambió, o la instancia está detenida | `terraform apply` (sección 4) y revisa el estado (sección 3) |
+| `ssh` se queda colgado / *Connection timed out* o *Connection refused* | Tu IP cambió, o la instancia está detenida o todavía arrancando | `terraform apply -target=aws_security_group.hadoop` (sección 4) y revisa el estado (sección 3) |
 | *Permission denied (publickey)* | Llave o usuario equivocados | Usa `-i ~/.ssh/bigdata` y el usuario `ubuntu` |
 | *UNPROTECTED PRIVATE KEY FILE* | Permisos de la llave muy abiertos | `chmod 600 ~/.ssh/bigdata` |
 | *REMOTE HOST IDENTIFICATION HAS CHANGED* | La IP ahora es de otra instancia (p. ej. tras recrear) | `ssh-keygen -R <IP>` y vuelve a conectar |
 | *InsufficientInstanceCapacity* al encender | AWS sin capacidad momentánea de ese tipo | Esperar unos minutos y reintentar |
 | Error de credenciales en Terraform o AWS CLI | Perfil mal configurado | `aws sts get-caller-identity --profile bigdata` debe mostrar la cuenta `964515698813` |
 | La instancia va muy lenta o se cuelga | Poca RAM para lo que corre | Revisar con `free -h`; detener servicios que no se usen |
+| Spark no arranca o un job falla con *Failed to exec spawn helper* / *Incorrect Java version … jspawnhelper* | Ubuntu actualizó Java con `unattended-upgrades` mientras YARN estaba corriendo (pasó el 18/11/2026, unos minutos después de encender) | Reiniciar los servicios: `stop-yarn.sh && stop-dfs.sh`, luego `start-dfs.sh && start-yarn.sh` y el historial de Spark. Para que no vuelva a pasar, excluir Java de las actualizaciones automáticas (ya lo hace `scripts/instalar-hadoop.sh`; en la instancia actual se corre una vez): `echo 'Unattended-Upgrade::Package-Blacklist { "openjdk-17-"; };' \| sudo tee /etc/apt/apt.conf.d/51no-actualizar-java`. Java se actualiza a mano con los servicios detenidos |

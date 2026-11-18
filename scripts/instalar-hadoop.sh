@@ -14,6 +14,10 @@ echo "== 1. Java 17 (Hadoop 3.5 no corre con Java 11) =="
 sudo apt-get update -q
 sudo apt-get install -y -q openjdk-17-jdk-headless
 java -version
+# unattended-upgrades actualiza Java solo; si pasa con YARN corriendo, los contenedores nuevos
+# fallan con "Failed to exec spawn helper" hasta reiniciar los servicios (18/11/2026).
+# Java se actualiza a mano, con los servicios detenidos: sudo apt-get install --only-upgrade openjdk-17-jdk-headless
+echo 'Unattended-Upgrade::Package-Blacklist { "openjdk-17-"; };' | sudo tee /etc/apt/apt.conf.d/51no-actualizar-java >/dev/null
 
 echo "== 2. SSH sin contraseña a localhost (lo usan start-dfs.sh / start-yarn.sh) =="
 [ -f ~/.ssh/id_ed25519 ] || ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
