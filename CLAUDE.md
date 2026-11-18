@@ -12,8 +12,8 @@ Predicción de delitos en Chicago (dónde, cuándo y qué tipo) con datos abiert
 | `docs/Fase3-Plan-y-Alcance.md` | Qué pide la Fase 3, plan por issue, decisiones y cómo cambió la infraestructura respecto a la Fase 2 |
 | `docs/Guia-Instancia-AWS.md` | Operación de la instancia: rutina de inicio y cierre, túnel, servicios, problemas comunes |
 | `infra/` | Terraform de la instancia EC2 |
-| `scripts/` | `instalar-hadoop.sh` e `instalar-spark.sh` (reinstalación en una instancia nueva) e `ingesta-raw.sh <año>` (descarga el CSV de un año, de 2022 a 2025, a la capa raw de HDFS) |
-| `notebooks/` | Notebook final `fase3_pipeline.ipynb` (secciones A, B y C) y la plantilla `00_plantilla.ipynb` para prototipar en local; reglas en `notebooks/README.md` |
+| `scripts/` | `instalar-hadoop.sh` e `instalar-spark.sh` (reinstalación en una instancia nueva) e `ingesta-raw.sh <año>` (descarga el CSV de un año, de 2022 a 2025, a la capa raw de HDFS) e `ingesta-clima.sh` (clima diario de O'Hare a raw) |
+| `notebooks/` | Notebook final `fase3_pipeline.ipynb` (secciones A, B y C), `variables_nuevas.ipynb` (variables del #21 sobre la tabla de 2022 a 2025) y la plantilla `00_plantilla.ipynb` para prototipar en local; reglas en `notebooks/README.md` |
 | `evidencia/` | Capturas para el reporte, una carpeta por tipo; índice en `evidencia/README.md` |
 
 Fuera del repo: Fase 2 en Google Docs, cronograma en Google Sheets (enlaces en `docs/Fase3-Plan-y-Alcance.md`), tareas en el project de GitHub "Proyecto Integrador Big Data", uno solo para todas las fases (Fase 3: issues #1 a #9; lo que sigue: #19 a #22).
