@@ -2,7 +2,7 @@
 
 > Proyecto integrador de tecnologías de Big Data · Predicción de delitos en Chicago
 > **Equipo:** Valentino De Paola Gallardo · Carlos David Gonzalez Davila · Eduardo Lopez Uresti
-> Última actualización: 18 de noviembre de 2026 (issues #20 y #21)
+> Última actualización: 19 de noviembre de 2026 (issues #20, #21 y #22)
 
 Este documento es la vista de conjunto del proyecto: qué es, cómo está armado, qué resultados tenemos y qué sigue. El detalle de cada fase vive en su propio documento (ver [Mapa de documentos](#mapa-de-documentos)).
 
@@ -164,6 +164,20 @@ Lo que aporta cada grupo por separado, sobre el MAE de 1.643 de la base: retraso
 - **La captura casi no se mueve** (19.9 %, el 76 % del máximo posible): bajar el error medio no cambia mucho cuáles son el 10 % de zonas-turno más activas.
 - El ajuste con tres ventanas de tiempo volvió a elegir 8 de profundidad y 50 árboles.
 
+### Tipo de delito (issue #22)
+
+Un clasificador para cada incidente de 2023 a 2025, con 7 clases (THEFT, BATTERY, CRIMINAL DAMAGE, ASSAULT, MOTOR VEHICLE THEFT, OTHER OFFENSE y OTROS; sin NARCOTICS ni WEAPONS VIOLATION) y solo variables que se conocen antes del incidente: la mezcla de tipos de la zona-turno en las 52 semanas anteriores, el turno, el día, la semana del año y el distrito. Misma prueba que los demás modelos (semanas 42 a 51 de 2025). Detalle en [`notebooks/tipo_de_delito.ipynb`](../notebooks/tipo_de_delito.ipynb), corrida en el clúster del 19/11/2026.
+
+| Modelo | Exactitud | F1 macro | Tipo real entre los 2 más probables | Error de la mezcla por zona-turno |
+|---|---|---|---|---|
+| Regresión logística multinomial | 29.4 % | 0.156 | 48.5 % | 4.66 puntos |
+| Random Forest | 29.3 % | 0.139 | 48.5 % | — |
+| Tipo más frecuente de la zona-turno (último año) | 29.1 % | 0.156 | 48.9 % | 4.65 puntos |
+| Tipo más común de la ciudad | 24.6 % | 0.056 | 44.0 % | 6.44 puntos |
+
+- **Ningún clasificador le gana a la regla de la zona-turno.** El tipo depende sobre todo de dónde, y la mezcla del último año ya lo dice: pesa más del 70 % en Random Forest. Turno, día y semana del año casi no cambian el tipo una vez que se sabe la zona.
+- **Sirve para anticipar la mezcla, no el incidente.** La mezcla de cada zona-turno se anticipa con un error de 4.7 puntos (6.4 con la de la ciudad), pero el tipo de un incidente suelto se acierta 3 de cada 10 veces. Las clases chicas (ASSAULT, MOTOR VEHICLE THEFT, OTHER OFFENSE) casi nunca son la más probable.
+
 ---
 
 ## 7. Hallazgos principales
@@ -197,7 +211,7 @@ Las decisiones completas, con su justificación, están en [Fase3-Plan-y-Alcance
 
 - **Estacionalidad sin variables que la capten.** Con cuatro años el modelo ya ve varios veranos, pero no tiene la semana del año ni el retraso de 52 semanas, así que no la aprovecha (#21). Las semanas de prueba (octubre a diciembre) caen en temporada baja.
 - **El historial reciente domina.** Con las variables del #21 el modelo le gana al promedio histórico, pero casi toda su fuerza viene de promedios de la propia zona-turno: la regla de 52 semanas sola queda a 0.024 de MAE del modelo.
-- **Sin predicción del tipo de delito.** Los modelos cuentan todos los tipos juntos.
+- **El tipo de delito se anticipa solo como mezcla.** El clasificador del #22 no le gana a la mezcla de la zona-turno en el último año, y acierta el tipo de un incidente suelto 3 de cada 10 veces.
 - **Infraestructura de una sola máquina.** YARN tiene 5 GB y Derby admite una sola sesión de Spark a la vez.
 - **Datos que cambian.** El portal sigue modificando 2025; las cifras dependen de la fecha de descarga (`FECHAS_RAW`). Además, el portal retira el 22/12/2026 la URL de descarga que usa `ingesta-raw.sh` (`/api/views/<id>/rows.csv`).
 
@@ -217,7 +231,7 @@ Ideas en orden de utilidad. Ninguna está comprometida todavía; cuando se decid
 3. ~~Variables nuevas~~ Hecho en #21: el modelo ya le gana al promedio histórico (sección 6). El clima solo serviría con un pronóstico real.
 4. ~~Más historia: 2022 a 2025~~ Hecho en #20: ayuda a los modelos frente a su propia referencia, pero no le gana al promedio de 2025 solo (sección 6). Más atrás de 2022 habría que revisar el cambio de zonas de patrullaje de 2012.
 5. ~~Ajuste con ventanas de tiempo~~ Hecho en #21: confirmó 8 de profundidad y 50 árboles.
-6. Un modelo de clasificación para el tipo de delito.
+6. ~~Clasificación del tipo de delito~~ Hecho en #22: la mezcla del último año de cada zona-turno basta; ningún clasificador le gana (sección 6).
 
 **Arquitectura que quedó fuera de la Fase 2**
 
