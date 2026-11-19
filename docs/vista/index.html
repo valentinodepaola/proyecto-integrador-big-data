@@ -133,13 +133,15 @@ p { margin: 0; }
 .barra-fila.azul .relleno { background: var(--azul); }
 
 /* Carrera de modelos */
-.carrera { display: grid; gap: 1.3cqw; }
+.carrera { display: grid; gap: 1cqw; }
 .corredor { display: grid; grid-template-columns: 25cqw 1fr; gap: 1.4cqw; align-items: center; }
 .corredor .nombre { font-size: 1.45cqw; text-align: right; color: var(--text-2); }
 .corredor.gana .nombre { color: var(--text); font-weight: 700; }
 .corredor .pista { position: relative; height: 3cqw; border-bottom: 1px dashed var(--line); }
 .corredor .ficha { position: absolute; top: 50%; left: 0; transform: translate(-50%, -50%); width: 2cqw; height: 2cqw; border-radius: 50%; background: var(--text-2); transition: left 1.4s cubic-bezier(.2,.7,.2,1); }
 .corredor.gana .ficha { background: var(--accent); width: 2.6cqw; height: 2.6cqw; box-shadow: 0 0 0 .6cqw var(--accent-soft); }
+.corredor.limite .nombre, .corredor.limite .etq { color: var(--text-3); font-style: italic; }
+.corredor.limite .ficha { background: transparent; border: .25cqw dashed var(--text-3); width: 2.4cqw; height: 2.4cqw; }
 .corredor .etq { position: absolute; top: 50%; transform: translate(1.8cqw, -50%); font-weight: 800; font-size: 1.4cqw; white-space: nowrap; transition: left 1.4s cubic-bezier(.2,.7,.2,1); left: 0; }
 .eje-carrera { display: grid; grid-template-columns: 25cqw 1fr; gap: 1.4cqw; font-size: 1.1cqw; color: var(--text-3); }
 .eje-carrera div:last-child { display: flex; justify-content: space-between; }
@@ -177,6 +179,10 @@ p { margin: 0; }
 .leccion .emoji { width: 4.2cqw; height: 4.2cqw; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 800; font-size: 1.9cqw; }
 .leccion h3 { margin: 1cqw 0 .8cqw; font-size: 1.9cqw; line-height: 1.2; }
 .leccion p { font-size: 1.4cqw; color: var(--text-2); line-height: 1.45; }
+.siguientes { margin: 0; padding: 0; list-style: none; display: grid; gap: 1cqw; max-width: 70cqw; }
+.siguientes li { font-size: 1.7cqw; color: var(--text-2); line-height: 1.4; padding-left: 2cqw; position: relative; }
+.siguientes li::before { content: ""; position: absolute; left: 0; top: .75cqw; width: .8cqw; height: .8cqw; border-radius: 50%; background: var(--accent); }
+.siguientes b { color: var(--text); }
 
 /* Mapa en vivo */
 .mapa-slide { padding: 2.6cqw 3.2cqw 2.4cqw; gap: 1.1cqw; }
@@ -380,9 +386,10 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
       <div class="corredor" data-v="1.642"><span class="nombre">Nuestro primer modelo</span><div class="pista"><div class="ficha"></div><span class="etq">1.64</span></div></div>
       <div class="corredor" data-v="1.614"><span class="nombre">Repetir el promedio de siempre</span><div class="pista"><div class="ficha"></div><span class="etq">1.61</span></div></div>
       <div class="corredor gana" data-v="1.585"><span class="nombre">Nuestro modelo mejorado</span><div class="pista"><div class="ficha"></div><span class="etq">1.59</span></div></div>
+      <div class="corredor limite paso" data-v="1.53"><span class="nombre">Límite: parte del delito es azar</span><div class="pista"><div class="ficha"></div><span class="etq">≈ 1.53</span></div></div>
       <div class="eje-carrera"><div></div><div><span>← más error</span><span>menos error →</span></div></div>
     </div>
-    <p class="texto paso" style="margin-top:auto">El modelo mejorado gana, pero por poco: <b>repetir lo que pasó hace poco ya funciona muy bien</b>. Para ganarle tuvimos que darle 4 años de datos y pistas nuevas (vecinos, época del año, festivos).</p>
+    <p class="texto paso" style="margin-top:auto">El modelo mejorado gana, pero por poco: <b>repetir lo que pasó hace poco ya funciona muy bien</b>. Estudios de otras ciudades, como Dallas, encuentran lo mismo. Y ya estamos cerca del límite: aunque el modelo supiera exactamente qué tan peligrosa es cada zona, el azar dejaría un error de alrededor de 1.53.</p>
     <div class="paso-pista">clic para seguir ›</div>
   </section>
 
@@ -474,9 +481,9 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
     <div class="kicker a" style="--i:0">En resumen</div>
     <h2 class="a" style="--i:1">Tres cosas que aprendimos</h2>
     <div class="lecciones" style="margin-top:1.4cqw">
-      <div class="tarjeta leccion paso"><div class="emoji">1</div><h3>Lo reciente predice más</h3><p>Lo que pasó en una zona las últimas semanas es la mejor pista. Ganarle a esa regla simple fue lo más difícil.</p></div>
+      <div class="tarjeta leccion paso"><div class="emoji">1</div><h3>Lo reciente predice más</h3><p>Lo que pasó en una zona las últimas semanas es la mejor pista. Estudios de otras ciudades encuentran lo mismo: ganarle a esa regla simple es lo más difícil.</p></div>
       <div class="tarjeta leccion paso"><div class="emoji">2</div><h3>Sí ayuda a patrullar</h3><p>Vigilando el 10 % de las zonas que dice el modelo se cubre el doble de delitos que eligiendo al azar.</p></div>
-      <div class="tarjeta leccion paso"><div class="emoji">3</div><h3>Hay un límite</h3><p>Parte del delito es azar. Ni sabiendo el futuro se cubriría más del 26 % con el 10 % de las zonas.</p></div>
+      <div class="tarjeta leccion paso"><div class="emoji">3</div><h3>Hay un límite</h3><p>Parte del delito es azar. Nuestro error ya está a unas centésimas del mínimo posible, y ni sabiendo el futuro se cubriría más del 26 % con el 10 % de las zonas.</p></div>
     </div>
     <div class="paso-pista">clic para seguir ›</div>
   </section>
@@ -484,9 +491,14 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
   <!-- 15 · Gracias -->
   <section class="slide portada" data-titulo="Gracias">
     <h1 class="a" style="--i:0">Gracias</h1>
-    <p class="grande a" style="--i:2">Lo que seguiría: usar el pronóstico del clima, zonas más chicas y que el modelo se actualice solo cada semana.</p>
-    <p class="texto a" style="--i:3">Código y documentación: <a href="https://github.com/valentinodepaola/proyecto-integrador-big-data">github.com/valentinodepaola/proyecto-integrador-big-data</a></p>
-    <p class="chico a" style="--i:4">Datos: <a href="https://data.cityofchicago.org/">Chicago Data Portal</a></p>
+    <p class="grande a" style="--i:2">Lo que seguiría:</p>
+    <ul class="siguientes a" style="--i:3">
+      <li>Un modelo pensado para <b>contar</b> delitos (regresión de Poisson), que es lo que recomiendan los estudios.</li>
+      <li>Pistas de <b>"contagio"</b>: un delito sube el riesgo en las zonas cercanas por unos días.</li>
+      <li>El <b>pronóstico del clima</b> y que el modelo se actualice solo cada semana.</li>
+    </ul>
+    <p class="texto a" style="--i:4">Código y documentación: <a href="https://github.com/valentinodepaola/proyecto-integrador-big-data">github.com/valentinodepaola/proyecto-integrador-big-data</a></p>
+    <p class="chico a" style="--i:5">Datos: <a href="https://data.cityofchicago.org/">Chicago Data Portal</a></p>
   </section>
 
 </main>
@@ -603,7 +615,7 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
     setTimeout(() => els.forEach(el => el.style.width = `${(+el.dataset.ancho / max) * 100}%`), sinMovimiento ? 0 : retraso);
   }
   function animarCarrera(s) {
-    const x0 = 1.76, x1 = 1.56, pos = v => `${((x0 - v) / (x0 - x1)) * 100}%`;
+    const x0 = 1.76, x1 = 1.51, pos = v => `${((x0 - v) / (x0 - x1)) * 100}%`;
     const corredores = [...s.querySelectorAll(".corredor")];
     corredores.forEach(c => { c.querySelector(".ficha").style.left = "0%"; c.querySelector(".etq").style.left = "0%"; });
     setTimeout(() => corredores.forEach(c => {
