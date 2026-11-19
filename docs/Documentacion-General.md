@@ -6,7 +6,7 @@
 
 Este documento es la vista de conjunto del proyecto: qué es, cómo está armado, qué resultados tenemos y qué sigue. El detalle de cada fase vive en su propio documento (ver [Mapa de documentos](#mapa-de-documentos)).
 
-**Vista del proyecto:** [valentinodepaola.github.io/proyecto-integrador-big-data/vista/](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/). Una página con el mapa de predicciones de Random Forest contra lo que pasó, las cinco gráficas y las tablas de los modelos, para presentarlo sin correr nada (sección 5).
+**Presentación del proyecto:** [valentinodepaola.github.io/proyecto-integrador-big-data/vista/](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/). Son 15 diapositivas web para la Fase 4: las cinco preguntas, los modelos, el impacto en patrullaje y una demo con el mapa de predicciones de Random Forest contra lo que pasó (sección 5).
 
 ---
 
@@ -108,9 +108,9 @@ Todo vive en un solo notebook, [`notebooks/fase3_pipeline.ipynb`](../notebooks/f
 | B4 · Un año contra cuatro | Junta las métricas de la corrida de 2025 y la de 2022–2025 | Tabla comparativa |
 | C · Visualizaciones | 5 gráficas, una por pregunta analítica | [`notebooks/figuras/`](../notebooks/figuras/) |
 
-### Vista del proyecto (issue #19)
+### Presentación del proyecto (issues #19 y Fase 4)
 
-[`docs/vista/index.html`](vista/index.html) es una página estática que publica GitHub Pages desde la carpeta `docs/` de `main`: [valentinodepaola.github.io/proyecto-integrador-big-data/vista/](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/). No tiene servidor ni corre en la instancia. Lee dos archivos de `docs/vista/datos/`, los dos con agregados nada más:
+[`docs/vista/index.html`](vista/index.html) es una presentación de 15 diapositivas que publica GitHub Pages desde la carpeta `docs/` de `main`: [valentinodepaola.github.io/proyecto-integrador-big-data/vista/](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/). Se avanza con las flechas o la barra de abajo, `F` pone pantalla completa y cada diapositiva tiene su enlace (`#1` a `#15`). No tiene servidor ni corre en la instancia. Lee dos archivos de `docs/vista/datos/`, los dos con agregados nada más:
 
 - `predicciones_2025.json`: la tabla `curated/predicciones_2025` que guarda el paso 5 de B3.
 - `beats.geojson`: los límites de los beats del portal de Chicago (dataset `n9it-hstw`).
@@ -274,7 +274,7 @@ Ideas en orden de utilidad. Ninguna está comprometida todavía; cuando se decid
 | [`docs/Guia-Instancia-AWS.md`](Guia-Instancia-AWS.md) | Operación de la instancia: rutina de inicio y cierre, túnel, servicios, problemas comunes |
 | [`notebooks/README.md`](../notebooks/README.md) | Instalación local, flujo de trabajo y reglas del notebook |
 | [`evidencia/README.md`](../evidencia/README.md) | Índice de las capturas por tipo |
-| [Vista del proyecto](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/) | Mapa de predicciones, gráficas y tablas de modelos para presentar (fuente en `docs/vista/`) |
+| [Presentación](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/) | Diapositivas de la Fase 4 con el mapa de predicciones en vivo (fuente en `docs/vista/`) |
 | [Project de GitHub](https://github.com/users/valentinodepaola/projects/5) | Tareas e issues de cada fase |
 
 **Cómo mantenerlo:** cada fase nueva tiene su propio `docs/FaseN-Plan-y-Alcance.md` con lo que pide la actividad, el plan y las decisiones de esa fase. Este documento se actualiza al cerrar cada fase (estado, resultados y próximos pasos) y cuando cambia la arquitectura o una decisión de la sección 8.

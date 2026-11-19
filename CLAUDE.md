@@ -14,7 +14,7 @@ Predicción de delitos en Chicago (dónde, cuándo y qué tipo) con datos abiert
 | `infra/` | Terraform de la instancia EC2 |
 | `scripts/` | `instalar-hadoop.sh` e `instalar-spark.sh` (reinstalación en una instancia nueva) e `ingesta-raw.sh <año>` (descarga el CSV de un año, de 2022 a 2025, a la capa raw de HDFS) e `ingesta-clima.sh` (clima diario de O'Hare a raw); `exportar-vista.py` genera los datos de `docs/vista/` |
 | `notebooks/` | Notebook final `fase3_pipeline.ipynb` (secciones A, B y C), `variables_nuevas.ipynb` (variables del #21 sobre la tabla de 2022 a 2025), `tipo_de_delito.ipynb` (clasificador del tipo de delito, #22) y la plantilla `00_plantilla.ipynb` para prototipar en local; reglas en `notebooks/README.md` |
-| `docs/vista/` | Vista del proyecto (#19): página estática con el mapa de predicciones, las gráficas y las tablas de modelos, publicada con GitHub Pages desde `docs/`. Solo agregados en `datos/` |
+| `docs/vista/` | Presentación de la Fase 4: 15 diapositivas web (flechas para avanzar, F pantalla completa) con las gráficas, los modelos, el impacto en patrullaje y el mapa de predicciones en vivo, publicada con GitHub Pages desde `docs/`. Solo agregados en `datos/` |
 | `evidencia/` | Capturas para el reporte, una carpeta por tipo; índice en `evidencia/README.md` |
 
 Fuera del repo: Fase 2 en Google Docs, cronograma en Google Sheets (enlaces en `docs/Fase3-Plan-y-Alcance.md`), tareas en el project de GitHub "Proyecto Integrador Big Data", uno solo para todas las fases (Fase 3: issues #1 a #9; lo que sigue: #19 a #22).
