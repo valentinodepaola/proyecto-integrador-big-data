@@ -6,6 +6,8 @@ Predicción de delitos en Chicago: dónde, cuándo y qué tipo de delito es más
 
 **Vista general del proyecto** (arquitectura, datos, resultados, decisiones y próximos pasos): [docs/Documentacion-General.md](docs/Documentacion-General.md)
 
+**Para verlo de un vistazo:** [mapa de predicciones, gráficas y modelos](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/)
+
 ## Fases
 
 | Fase | Contenido | Estado | Documento |
@@ -17,9 +19,9 @@ Predicción de delitos en Chicago: dónde, cuándo y qué tipo de delito es más
 ## Estructura
 
 ```
-docs/        Documentación general, planes de cada fase y guía de operación
+docs/        Documentación general, planes de cada fase, guía de operación y la vista web (docs/vista/)
 infra/       Terraform: instancia EC2 en AWS (Hadoop + Spark)
-scripts/     Instalación de Hadoop/Spark e ingesta de datos
+scripts/     Instalación de Hadoop/Spark, ingesta de datos y exportación de la vista
 notebooks/   Notebook del pipeline (A, B y C) y plantilla para prototipar en local
 evidencia/   Capturas por tipo para el reporte (índice en evidencia/README.md)
 ```

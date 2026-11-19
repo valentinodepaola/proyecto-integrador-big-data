@@ -20,6 +20,7 @@ La plantilla [`00_plantilla.ipynb`](00_plantilla.ipynb) sirve para prototipar en
 3. **Años.** `ANIOS = [2025]` reproduce la Fase 3. `ANIOS = [2022, 2023, 2024, 2025]` repite el pipeline con cuatro años (issue #20): sus rutas y tablas llevan el sufijo `_2022_2025` y no pisan las de 2025. La sección B4 junta las métricas de las dos corridas, así que hay que correr el notebook una vez con cada valor. La corrida ejecutada de cuatro años se guarda aparte como `fase3_pipeline_2022_2025.ipynb`, con sus figuras `C_*_2022_2025_cluster.png`.
 4. **Variables nuevas (#21).** `variables_nuevas.ipynb` parte de las tablas de 2022 a 2025 que deja la corrida de cuatro años, así que va después de ella. Necesita además el clima: `bash scripts/ingesta-clima.sh` en la instancia, o `LOCAL=1 bash scripts/ingesta-clima.sh` para dejarlo en `data/`.
 5. **Tipo de delito (#22).** `tipo_de_delito.ipynb` también parte de las tablas de 2022 a 2025 (no necesita el clima). Su figura se guarda como `T_matriz_confusion_<local|cluster>.png`.
+6. **Vista del proyecto (#19).** El paso 5 de B3 guarda las predicciones de prueba en `curated/predicciones_<años>`. Con las de 2025, `python scripts/exportar-vista.py` genera los datos de `docs/vista/` (los pasos están en la sección 5 de la documentación general). Si cambian las figuras, hay que copiarlas también a `docs/vista/img/`.
 6. **La plantilla sirve para prototipar** un análisis nuevo en tu compu antes de pasarlo al notebook final.
 
 ## Instalación en tu compu (una sola vez)

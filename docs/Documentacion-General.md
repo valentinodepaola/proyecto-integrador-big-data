@@ -2,9 +2,11 @@
 
 > Proyecto integrador de tecnologías de Big Data · Predicción de delitos en Chicago
 > **Equipo:** Valentino De Paola Gallardo · Carlos David Gonzalez Davila · Eduardo Lopez Uresti
-> Última actualización: 19 de noviembre de 2026 (issues #20, #21 y #22)
+> Última actualización: 19 de noviembre de 2026 (issues #19 a #22)
 
 Este documento es la vista de conjunto del proyecto: qué es, cómo está armado, qué resultados tenemos y qué sigue. El detalle de cada fase vive en su propio documento (ver [Mapa de documentos](#mapa-de-documentos)).
+
+**Vista del proyecto:** [valentinodepaola.github.io/proyecto-integrador-big-data/vista/](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/). Una página con el mapa de predicciones de Random Forest contra lo que pasó, las cinco gráficas y las tablas de los modelos, para presentarlo sin correr nada (sección 5).
 
 ---
 
@@ -81,6 +83,7 @@ Cómo encenderla, arrancar los servicios y apagar todo: [Guia-Instancia-AWS.md](
 | processed | `/datalake/processed/crimes_2025/` | `chicago.crimes` | Incidentes limpios: las 22 columnas de la plantilla, fechas en UTC, banderas `hora_imputada` y `coord_imputada` |
 | curated | `/datalake/curated/zona_turno_2025/` | `chicago.zona_turno` | Una fila por beat × turno de 6 h × semana, con variables de semanas anteriores, la columna `conjunto` y el vector `features` |
 | curated | `/datalake/curated/zona_turno_variables_2022_2025/` | `chicago.zona_turno_variables_2022_2025` | La tabla zona-turno de 2022 a 2025 con las variables nuevas del #21 (retrasos, estacionalidad, vecinos, festivos y clima), desde la semana 4 de 2023 |
+| curated | `/datalake/curated/predicciones_2025/` | — | Predicciones de prueba (semanas 42 a 51) por beat, turno y semana: incidentes reales, Random Forest, GBT, las dos referencias y si Random Forest señaló la zona-turno. Las lee la vista del proyecto |
 | raw | `/datalake/raw/clima_ohare/fecha=<AAAA-MM-DD>/` | — | Clima diario de O'Hare de 2022 a 2025 (Open-Meteo), cargado con `scripts/ingesta-clima.sh` |
 
 Las corridas con varios años (`ANIOS` en el notebook) guardan sus capas aparte con el sufijo de los años: `crimes_2022_2025`, `zona_turno_2022_2025` y las tablas `chicago.crimes_2022_2025` y `chicago.zona_turno_2022_2025`. Cada corrida deja también su tabla de métricas en `/datalake/curated/metricas_<años>/`, que lee la sección B4.
@@ -104,6 +107,25 @@ Todo vive en un solo notebook, [`notebooks/fase3_pipeline.ipynb`](../notebooks/f
 | B3 · Comparación | Tabla, comparación semana a semana y elección | Random Forest |
 | B4 · Un año contra cuatro | Junta las métricas de la corrida de 2025 y la de 2022–2025 | Tabla comparativa |
 | C · Visualizaciones | 5 gráficas, una por pregunta analítica | [`notebooks/figuras/`](../notebooks/figuras/) |
+
+### Vista del proyecto (issue #19)
+
+[`docs/vista/index.html`](vista/index.html) es una página estática que publica GitHub Pages desde la carpeta `docs/` de `main`: [valentinodepaola.github.io/proyecto-integrador-big-data/vista/](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/). No tiene servidor ni corre en la instancia. Lee dos archivos de `docs/vista/datos/`, los dos con agregados nada más:
+
+- `predicciones_2025.json`: la tabla `curated/predicciones_2025` que guarda el paso 5 de B3.
+- `beats.geojson`: los límites de los beats del portal de Chicago (dataset `n9it-hstw`).
+
+Las figuras están copiadas en `docs/vista/img/`, porque Pages solo sirve lo que está dentro de `docs/`. Para regenerar los datos después de una corrida nueva del notebook con `ANIOS = [2025]`:
+
+```bash
+# en la instancia
+hdfs dfs -get -f /datalake/curated/predicciones_2025 ~/predicciones_2025
+# en la Mac, desde la raíz del repo (con pandas y pyarrow, como en notebooks/README.md)
+scp -r -i ~/.ssh/bigdata ubuntu@<IP>:predicciones_2025 data/curated/
+python scripts/exportar-vista.py data/curated/predicciones_2025
+```
+
+Para verla en local antes de subirla: `python3 -m http.server --directory docs` y abrir `http://localhost:8000/vista/`. Abrir el HTML directo con doble clic no carga los datos del mapa, porque el navegador bloquea la lectura de archivos locales.
 
 ---
 
@@ -237,7 +259,7 @@ Ideas en orden de utilidad. Ninguna está comprometida todavía; cuando se decid
 
 7. MLflow para registrar corridas y modelos.
 8. Ingesta automática raw → processed → curated (Airflow o cron).
-9. Un tablero con el mapa de riesgo por zona-turno.
+9. ~~Un tablero con el mapa de riesgo por zona-turno~~ Hecho en #19 como página estática con las predicciones de prueba (sección 5). Faltaría que se actualice sola cada semana.
 10. Una API que reciba beat y turno y devuelva la predicción.
 
 ---
@@ -252,6 +274,7 @@ Ideas en orden de utilidad. Ninguna está comprometida todavía; cuando se decid
 | [`docs/Guia-Instancia-AWS.md`](Guia-Instancia-AWS.md) | Operación de la instancia: rutina de inicio y cierre, túnel, servicios, problemas comunes |
 | [`notebooks/README.md`](../notebooks/README.md) | Instalación local, flujo de trabajo y reglas del notebook |
 | [`evidencia/README.md`](../evidencia/README.md) | Índice de las capturas por tipo |
+| [Vista del proyecto](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/) | Mapa de predicciones, gráficas y tablas de modelos para presentar (fuente en `docs/vista/`) |
 | [Project de GitHub](https://github.com/users/valentinodepaola/projects/5) | Tareas e issues de cada fase |
 
 **Cómo mantenerlo:** cada fase nueva tiene su propio `docs/FaseN-Plan-y-Alcance.md` con lo que pide la actividad, el plan y las decisiones de esa fase. Este documento se actualiza al cerrar cada fase (estado, resultados y próximos pasos) y cuando cambia la arquitectura o una decisión de la sección 8.
