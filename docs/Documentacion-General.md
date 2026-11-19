@@ -6,7 +6,7 @@
 
 Este documento es la vista de conjunto del proyecto: qué es, cómo está armado, qué resultados tenemos y qué sigue. El detalle de cada fase vive en su propio documento (ver [Mapa de documentos](#mapa-de-documentos)).
 
-**Presentación del proyecto:** [valentinodepaola.github.io/proyecto-integrador-big-data/vista/](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/). Son 15 diapositivas web para la Fase 4: las cinco preguntas, los modelos, el impacto en patrullaje y una demo con el mapa de predicciones de Random Forest contra lo que pasó (sección 5).
+**Presentación del proyecto:** [valentinodepaola.github.io/proyecto-integrador-big-data/vista/](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/). Son 15 diapositivas web para la Fase 4, explicadas en lenguaje simple y con animaciones: el problema, los datos, las cinco preguntas, cómo predice el modelo y qué tan bien, un simulador para elegir qué porcentaje de zonas patrullar y el mapa de predicciones en vivo (sección 5).
 
 ---
 
@@ -110,7 +110,7 @@ Todo vive en un solo notebook, [`notebooks/fase3_pipeline.ipynb`](../notebooks/f
 
 ### Presentación del proyecto (issues #19 y Fase 4)
 
-[`docs/vista/index.html`](vista/index.html) es una presentación de 15 diapositivas que publica GitHub Pages desde la carpeta `docs/` de `main`: [valentinodepaola.github.io/proyecto-integrador-big-data/vista/](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/). Se avanza con las flechas o la barra de abajo, `F` pone pantalla completa y cada diapositiva tiene su enlace (`#1` a `#15`). No tiene servidor ni corre en la instancia. Lee dos archivos de `docs/vista/datos/`, los dos con agregados nada más:
+[`docs/vista/index.html`](vista/index.html) es una presentación de 15 diapositivas que publica GitHub Pages desde la carpeta `docs/` de `main`: [valentinodepaola.github.io/proyecto-integrador-big-data/vista/](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/). Se avanza con las flechas, con clic o con la barra de abajo (en varias diapositivas los puntos aparecen uno por clic), `F` pone pantalla completa y cada diapositiva tiene su enlace (`#1` a `#15`). No tiene servidor ni corre en la instancia. Lee dos archivos de `docs/vista/datos/`, los dos con agregados nada más:
 
 - `predicciones_2025.js`: la tabla `curated/predicciones_2025` que guarda el paso 5 de B3.
 - `beats.js`: los límites de los beats del portal de Chicago (dataset `n9it-hstw`).
