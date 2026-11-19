@@ -423,6 +423,9 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
 <div class="ayuda">← → para avanzar · F pantalla completa</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- Los datos van como scripts (no con fetch) para que también funcione abriendo el archivo con doble clic -->
+<script src="datos/predicciones_2025.js"></script>
+<script src="datos/beats.js"></script>
 <script>
 (() => {
   const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -515,13 +518,9 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
   const inicioSemana = (anio, s) => new Date(Date.UTC(anio, 0, 1 + 7 * s));   // la semana s empieza el día 7s + 1
   const fechaCorta = d => d.toLocaleDateString("es-MX", { day: "numeric", month: "short", timeZone: "UTC" });
 
-  Promise.all([fetch("datos/predicciones_2025.json").then(r => r.json()),
-               fetch("datos/beats.geojson").then(r => r.json())])
-    .then(([pred, geo]) => iniciarMapa(pred, geo))
-    .catch(err => {
-      document.getElementById("mapa").innerHTML =
-        `<p style="padding:2cqw" class="texto">No se pudieron cargar los datos del mapa (${err.message}). Si abriste el archivo directo, sírvelo con <span class="mono">python3 -m http.server</span> desde <span class="mono">docs/</span>.</p>`;
-    });
+  if (window.PREDICCIONES && window.BEATS && window.L) iniciarMapa(window.PREDICCIONES, window.BEATS);
+  else document.getElementById("mapa").innerHTML =
+    `<p style="padding:2cqw" class="texto">No se pudieron cargar los datos del mapa. Revisa que exista la carpeta <span class="mono">datos/</span> junto a este archivo y que haya conexión a internet (el mapa usa Leaflet).</p>`;
 
   function iniciarMapa(pred, geo) {
     const col = Object.fromEntries(pred.columnas.map((c, i) => [c, i]));

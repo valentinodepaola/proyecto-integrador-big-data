@@ -4,8 +4,12 @@ Lee las predicciones de prueba que guarda la sección B3 de notebooks/fase3_pipe
 (curated/predicciones_2025) y baja los límites de los beats del portal de Chicago. Escribe dos
 archivos chicos en docs/vista/datos/, solo con agregados por zona-turno y semana:
 
-  predicciones_2025.json   incidentes reales y predicciones por beat, turno y semana de prueba
-  beats.geojson            polígonos de los beats, con las coordenadas recortadas a 4 decimales
+  predicciones_2025.js   incidentes reales y predicciones por beat, turno y semana de prueba
+  beats.js               polígonos de los beats (GeoJSON), con las coordenadas recortadas a 4 decimales
+
+Son scripts que asignan el JSON a una variable global (window.PREDICCIONES y window.BEATS) en vez de
+archivos .json: así la presentación también funciona abriendo index.html con doble clic, donde el
+navegador no deja usar fetch sobre archivos locales.
 
 Uso, desde la raíz del repo y con pandas y pyarrow instalados:
   python scripts/exportar-vista.py [carpeta del Parquet]
@@ -26,6 +30,11 @@ SALIDA = RAIZ / "docs/vista/datos"
 URL_BEATS = "https://data.cityofchicago.org/resource/n9it-hstw.geojson?$limit=1000"   # Boundaries - Police Beats (current)
 DECIMALES = 4   # unos 10 m, de sobra para un mapa de toda la ciudad
 TURNOS = ["00-06", "06-12", "12-18", "18-24"]
+
+
+def escribir_js(ruta, variable, datos):
+    """Guarda los datos como un script que los asigna a window.<variable>."""
+    ruta.write_text(f"window.{variable} = {json.dumps(datos, separators=(',', ':'))};\n")
 
 
 def exportar_predicciones():
@@ -49,8 +58,8 @@ def exportar_predicciones():
                    round(float(f.gbt), 2), round(float(f.promedio_historico), 2), int(f.senalada_rf)]
                   for f in df.itertuples(index=False)],
     }
-    ruta = SALIDA / f"predicciones_{datos['anio']}.json"
-    ruta.write_text(json.dumps(datos, separators=(",", ":")))
+    ruta = SALIDA / f"predicciones_{datos['anio']}.js"
+    escribir_js(ruta, "PREDICCIONES", datos)
     print(f"{len(df):,} filas ({df['beat'].nunique()} beats, {len(datos['semanas'])} semanas) en {ruta.relative_to(RAIZ)}"
           f" · {ruta.stat().st_size / 1024:.0f} KB · captura de Random Forest {total_captura:.1%}")
     return set(df["beat"].unique())
@@ -80,8 +89,8 @@ def exportar_beats(beats_con_datos):
             "geometry": {"type": "MultiPolygon",
                          "coordinates": [[recortar(anillo) for anillo in poligono] for poligono in poligonos]},
         })
-    ruta = SALIDA / "beats.geojson"
-    ruta.write_text(json.dumps({"type": "FeatureCollection", "features": features}, separators=(",", ":")))
+    ruta = SALIDA / "beats.js"
+    escribir_js(ruta, "BEATS", {"type": "FeatureCollection", "features": features})
 
     beats_mapa = {f["properties"]["beat"] for f in features}
     sin_poligono = sorted(beats_con_datos - beats_mapa)

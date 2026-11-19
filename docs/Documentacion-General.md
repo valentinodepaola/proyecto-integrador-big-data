@@ -112,8 +112,8 @@ Todo vive en un solo notebook, [`notebooks/fase3_pipeline.ipynb`](../notebooks/f
 
 [`docs/vista/index.html`](vista/index.html) es una presentación de 15 diapositivas que publica GitHub Pages desde la carpeta `docs/` de `main`: [valentinodepaola.github.io/proyecto-integrador-big-data/vista/](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/). Se avanza con las flechas o la barra de abajo, `F` pone pantalla completa y cada diapositiva tiene su enlace (`#1` a `#15`). No tiene servidor ni corre en la instancia. Lee dos archivos de `docs/vista/datos/`, los dos con agregados nada más:
 
-- `predicciones_2025.json`: la tabla `curated/predicciones_2025` que guarda el paso 5 de B3.
-- `beats.geojson`: los límites de los beats del portal de Chicago (dataset `n9it-hstw`).
+- `predicciones_2025.js`: la tabla `curated/predicciones_2025` que guarda el paso 5 de B3.
+- `beats.js`: los límites de los beats del portal de Chicago (dataset `n9it-hstw`).
 
 Las figuras están copiadas en `docs/vista/img/`, porque Pages solo sirve lo que está dentro de `docs/`. Para regenerar los datos después de una corrida nueva del notebook con `ANIOS = [2025]`:
 
@@ -125,7 +125,7 @@ scp -r -i ~/.ssh/bigdata ubuntu@<IP>:predicciones_2025 data/curated/
 python scripts/exportar-vista.py data/curated/predicciones_2025
 ```
 
-Para verla en local antes de subirla: `python3 -m http.server --directory docs` y abrir `http://localhost:8000/vista/`. Abrir el HTML directo con doble clic no carga los datos del mapa, porque el navegador bloquea la lectura de archivos locales.
+Son scripts con el JSON adentro, no archivos `.json`, para que la presentación también funcione abriendo `docs/vista/index.html` con doble clic: el navegador no deja leer archivos locales con `fetch`. Solo necesita internet para Leaflet y las fuentes.
 
 ---
 
