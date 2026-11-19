@@ -4,450 +4,552 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Delitos en Chicago</title>
-<meta name="description" content="Proyecto integrador de Big Data: predicción de delitos en Chicago por zona, turno y semana con PySpark.">
+<meta name="description" content="Presentación del proyecto integrador de Big Data: predicción de delitos en Chicago por zona, turno y semana con PySpark.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #f6f5f2;
+  --bg: #e9e7e2;
+  --slide: #f8f7f4;
   --surface: #ffffff;
   --surface-2: #efede8;
   --text: #1b1c1e;
-  --text-2: #5b5e63;
+  --text-2: #55585d;
   --text-3: #8a8d92;
   --line: #dddad3;
   --accent: #c2410c;
   --accent-soft: #fde7da;
-  --good: #1f7a5a;
   --seq-0: #f3efe6; --seq-1: #e9d9bf; --seq-2: #e2b98d; --seq-3: #d9935f;
   --seq-4: #c56a3c; --seq-5: #a2452a; --seq-6: #6f2a1e;
   --div-neg-2: #2f6fa5; --div-neg-1: #8fb7d6; --div-0: #ece9e2; --div-pos-1: #e9a07a; --div-pos-2: #b5452a;
-  --shadow: 0 1px 2px rgba(20, 20, 20, .05), 0 4px 16px rgba(20, 20, 20, .05);
-  --radius: 14px;
+  --gris: #b9b6ae;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #121315; --surface: #1b1c1f; --surface-2: #24262a; --text: #ecebe8; --text-2: #a9abb0; --text-3: #75787d;
-    --line: #2e3035; --accent: #f08a4b; --accent-soft: #3a2418; --good: #5fc39b;
+    --bg: #0c0d0e; --slide: #151618; --surface: #1d1e21; --surface-2: #26282b; --text: #ecebe8; --text-2: #a9abb0; --text-3: #75787d;
+    --line: #303237; --accent: #f08a4b; --accent-soft: #3a2418; --gris: #55585d;
     --seq-0: #26282c; --seq-1: #3d3529; --seq-2: #5d4630; --seq-3: #8a5a35; --seq-4: #b8703c; --seq-5: #e08d4c; --seq-6: #ffc27a;
     --div-neg-2: #5d9fd6; --div-neg-1: #355a7a; --div-0: #2b2d31; --div-pos-1: #8a4a30; --div-pos-2: #e0764a;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .25);
   }
 }
 :root[data-theme="dark"] {
-  --bg: #121315; --surface: #1b1c1f; --surface-2: #24262a; --text: #ecebe8; --text-2: #a9abb0; --text-3: #75787d;
-  --line: #2e3035; --accent: #f08a4b; --accent-soft: #3a2418; --good: #5fc39b;
+  --bg: #0c0d0e; --slide: #151618; --surface: #1d1e21; --surface-2: #26282b; --text: #ecebe8; --text-2: #a9abb0; --text-3: #75787d;
+  --line: #303237; --accent: #f08a4b; --accent-soft: #3a2418; --gris: #55585d;
   --seq-0: #26282c; --seq-1: #3d3529; --seq-2: #5d4630; --seq-3: #8a5a35; --seq-4: #b8703c; --seq-5: #e08d4c; --seq-6: #ffc27a;
   --div-neg-2: #5d9fd6; --div-neg-1: #355a7a; --div-0: #2b2d31; --div-pos-1: #8a4a30; --div-pos-2: #e0764a;
-  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .25);
 }
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html, body { height: 100%; margin: 0; }
 body {
-  margin: 0; background: var(--bg); color: var(--text);
-  font: 400 16px/1.55 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg); color: var(--text); overflow: hidden;
+  font: 400 16px/1.45 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
   font-feature-settings: "tnum" 1;
 }
-.wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
 a { color: var(--accent); text-underline-offset: 2px; }
-h1, h2, h3 { line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
-h2 { font-size: 26px; font-weight: 700; }
-h3 { font-size: 17px; font-weight: 600; }
+
+/* Escenario 16:9 que llena la ventana; todo se mide en cqw (1 % del ancho de la diapositiva) */
+.escenario { position: fixed; inset: 0 0 44px 0; display: grid; place-items: center; }
+.deck {
+  width: min(100vw - 24px, (100vh - 68px) * 16 / 9);
+  aspect-ratio: 16 / 9; position: relative; container-type: inline-size;
+  background: var(--slide); border-radius: 10px; box-shadow: 0 2px 30px rgba(0,0,0,.12); overflow: hidden;
+}
+.slide { position: absolute; inset: 0; padding: 4.2cqw 5cqw 4cqw; display: none; flex-direction: column; gap: 1.6cqw; }
+.slide.activa { display: flex; animation: entrar .35s ease both; }
+@keyframes entrar { from { opacity: 0; transform: translateY(.6cqw); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .slide.activa { animation: none; } }
+
+.kicker { font-size: 1.05cqw; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 4.6cqw; line-height: 1.05; letter-spacing: -0.025em; margin: 0; font-weight: 800; }
+h2 { font-size: 2.9cqw; line-height: 1.1; letter-spacing: -0.02em; margin: 0; font-weight: 700; max-width: 80%; }
+h3 { font-size: 1.5cqw; margin: 0; font-weight: 600; }
 p { margin: 0; }
-.muted { color: var(--text-2); }
-.small { font-size: 14px; }
+.lead { font-size: 1.7cqw; color: var(--text-2); max-width: 62cqw; line-height: 1.45; }
+.texto { font-size: 1.45cqw; color: var(--text-2); line-height: 1.5; }
+.texto b { color: var(--text); }
+.chico { font-size: 1.1cqw; color: var(--text-3); }
 .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .92em; }
+.cuerpo { flex: 1; min-height: 0; display: grid; gap: 2.4cqw; }
+.cuerpo > * { min-width: 0; min-height: 0; }
+.col-2 { grid-template-columns: 1fr 1fr; }
+.col-img { grid-template-columns: 1.35fr 1fr; align-items: center; }
+.col-img-ancha { grid-template-rows: 1fr auto; }
+.tarjeta { background: var(--surface); border: 1px solid var(--line); border-radius: 1cqw; padding: 1.6cqw; }
+.figura { background: #fff; border-radius: .8cqw; border: 1px solid var(--line); height: 100%; min-height: 0; position: relative; }
+.figura img { position: absolute; inset: .8cqw; width: calc(100% - 1.6cqw); height: calc(100% - 1.6cqw); object-fit: contain; display: block; }
+.dato-grande { font-size: 5.2cqw; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: var(--accent); }
+.puntos { margin: 0; padding: 0; list-style: none; display: grid; gap: 1.3cqw; }
+.puntos li { font-size: 1.5cqw; line-height: 1.45; color: var(--text-2); padding-left: 1.8cqw; position: relative; }
+.puntos li::before { content: ""; position: absolute; left: 0; top: .62cqw; width: .7cqw; height: .7cqw; border-radius: 50%; background: var(--accent); }
+.puntos li b { color: var(--text); }
 
-header.hero { padding: 56px 0 32px; }
-.kicker { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
-.hero h1 { font-size: clamp(32px, 5vw, 48px); font-weight: 700; margin-top: 10px; max-width: 18ch; }
-.hero .lead { font-size: 18px; color: var(--text-2); margin-top: 16px; max-width: 62ch; }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 32px; }
-.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
-.stat b { display: block; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
-.stat span { font-size: 14px; color: var(--text-2); }
+/* Portada */
+.portada { justify-content: center; gap: 2.2cqw; }
+.portada h1 { font-size: 6cqw; max-width: 70cqw; }
+.portada .equipo { font-size: 1.4cqw; color: var(--text-2); }
+.portada .franja { position: absolute; right: 0; top: 0; bottom: 0; width: 26cqw; background: linear-gradient(160deg, var(--seq-2), var(--seq-5)); opacity: .9;
+  clip-path: polygon(30% 0, 100% 0, 100% 100%, 0 100%); }
 
-nav.secciones { position: sticky; top: 0; z-index: 1000; background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
-nav.secciones .wrap { display: flex; gap: 20px; overflow-x: auto; scrollbar-width: none; }
-nav.secciones a { color: var(--text-2); text-decoration: none; font-size: 14px; font-weight: 500; padding: 12px 0; white-space: nowrap; }
-nav.secciones a:hover { color: var(--text); }
+/* Cifras */
+.cifras { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.4cqw; }
+.cifra b { display: block; font-size: 3cqw; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+.cifra span { font-size: 1.15cqw; color: var(--text-2); }
 
-section { padding: 48px 0 8px; }
-.seccion-intro { max-width: 68ch; margin: 10px 0 24px; color: var(--text-2); }
-
-/* Mapa */
-.mapa-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
-#mapa { height: 620px; border-radius: var(--radius); background: var(--surface); }
-.controles { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-bottom: 14px; align-items: end; }
-.control label { display: block; font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
-.segmentado { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 3px; gap: 2px; flex-wrap: wrap; }
-.segmentado button { border: 0; background: transparent; color: var(--text-2); font: 500 14px/1 Inter, system-ui, sans-serif;
-  padding: 8px 11px; border-radius: 8px; cursor: pointer; transition: background .15s, color .15s; }
-.segmentado button:hover { color: var(--text); }
-.segmentado button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
-select { font: 500 14px Inter, system-ui, sans-serif; color: var(--text); background: var(--surface-2); border: 0; border-radius: 10px; padding: 9px 12px; }
-.lado { padding: 18px; display: flex; flex-direction: column; gap: 18px; }
-.lado h3 { font-size: 15px; }
-.metrica-grande { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
-.fila-dato { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 6px 0; border-bottom: 1px solid var(--line); }
-.fila-dato:last-child { border-bottom: 0; }
-.fila-dato span:first-child { color: var(--text-2); }
-.leyenda { display: flex; gap: 2px; margin-top: 8px; }
-.leyenda i { flex: 1; height: 10px; border-radius: 2px; }
-.leyenda-etiquetas { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-3); margin-top: 4px; }
-.borde-ejemplo { display: inline-block; width: 14px; height: 10px; border: 2px solid var(--accent); border-radius: 2px; vertical-align: -1px; margin-right: 6px; }
-#barras-captura svg { display: block; width: 100%; height: auto; }
-.detalle-vacio { color: var(--text-3); font-size: 14px; }
-.leaflet-container { font: 14px Inter, system-ui, sans-serif; }
-.leaflet-tooltip.etiqueta-beat { background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); padding: 6px 9px; }
-.leaflet-tooltip.etiqueta-beat::before { display: none; }
-
-/* Preguntas */
-.preguntas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-.pregunta { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
-.pregunta.ancha { grid-column: 1 / -1; }
-.pregunta .num { font-size: 13px; font-weight: 600; color: var(--accent); }
-.pregunta img { width: 100%; height: auto; border-radius: 8px; background: #fff; display: block; }
-.toggle-anios { margin-bottom: 18px; }
+/* Flujo del pipeline */
+.flujo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1cqw; }
+.paso .capa { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 1.05cqw; color: var(--accent); }
+.paso h3 { margin: .5cqw 0; }
+.paso p { font-size: 1.1cqw; color: var(--text-2); line-height: 1.4; }
+.stack { display: flex; flex-wrap: wrap; gap: .6cqw 2cqw; font-size: 1.15cqw; color: var(--text-2); }
+.stack b { color: var(--text); }
 
 /* Tablas */
-.tabla-bloque { padding: 20px; margin-bottom: 16px; }
-.tabla-bloque h3 { margin-bottom: 4px; }
-.tabla-bloque > p { margin-bottom: 14px; }
-.tabla-scroll { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th, td { text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 180px; }
-th { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; }
-tr.destacada td { font-weight: 600; }
-tr.destacada td:first-child { box-shadow: inset 3px 0 0 var(--accent); padding-left: 12px; }
-.conclusion { margin-top: 14px; padding: 12px 14px; background: var(--accent-soft); border-radius: 10px; font-size: 15px; }
-.dos-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-.dos-col > *, .preguntas > *, .flujo > * { min-width: 0; }
+table { width: 100%; border-collapse: collapse; font-size: 1.3cqw; }
+th, td { text-align: right; padding: .75cqw .9cqw; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; white-space: normal; }
+th { font-size: .95cqw; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
+tr.destacada td { font-weight: 700; }
+tr.destacada td:first-child { box-shadow: inset .3cqw 0 0 var(--accent); padding-left: 1.3cqw; }
+.conclusion { padding: 1.2cqw 1.5cqw; background: var(--accent-soft); border-radius: .9cqw; font-size: 1.45cqw; line-height: 1.45; }
 
-/* Pipeline */
-.flujo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-.paso { padding: 16px; position: relative; }
-.paso .capa { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; color: var(--accent); }
-.paso h3 { margin: 6px 0; }
-.paso p { font-size: 14px; color: var(--text-2); }
-.stack { margin-top: 16px; padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; color: var(--text-2); }
-.stack b { color: var(--text); font-weight: 600; }
+/* Gráficas SVG propias */
+.grafica svg { width: 100%; height: auto; display: block; overflow: visible; }
+.grafica text { font-family: Inter, system-ui, sans-serif; }
 
-footer { padding: 48px 0 56px; color: var(--text-3); font-size: 14px; }
-footer .wrap { border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+/* Mapa */
+.mapa-slide { padding: 2.6cqw 3.2cqw 2.4cqw; gap: 1.1cqw; }
+.mapa-slide h2 { font-size: 2.3cqw; }
+.controles { display: flex; flex-wrap: wrap; gap: .8cqw 1.6cqw; align-items: end; }
+.control label { display: block; font-size: .85cqw; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: .4cqw; }
+.segmentado { display: inline-flex; background: var(--surface-2); border-radius: .8cqw; padding: .25cqw; gap: .15cqw; }
+.segmentado button { border: 0; background: transparent; color: var(--text-2); font: 500 1.1cqw/1 Inter, system-ui, sans-serif;
+  padding: .65cqw .9cqw; border-radius: .6cqw; cursor: pointer; }
+.segmentado button:hover { color: var(--text); }
+.segmentado button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); background: var(--surface-2); border: 0; border-radius: .8cqw; padding: .7cqw .9cqw; }
+.mapa-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 24cqw; gap: 1.2cqw; }
+#mapa { height: 100%; border-radius: 1cqw; background: var(--surface); border: 1px solid var(--line); }
+.lado { display: flex; flex-direction: column; gap: 1.2cqw; padding: 1.4cqw; overflow: hidden; }
+.lado h3 { font-size: 1.15cqw; }
+.metrica { font-size: 3cqw; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; color: var(--accent); }
+.lado .chico { color: var(--text-2); }
+.fila-dato { display: flex; justify-content: space-between; gap: 1cqw; font-size: 1.1cqw; padding: .45cqw 0; border-bottom: 1px solid var(--line); }
+.fila-dato:last-child { border-bottom: 0; }
+.fila-dato span:first-child { color: var(--text-2); }
+.leyenda { display: flex; gap: .15cqw; margin-top: .5cqw; }
+.leyenda i { flex: 1; height: .8cqw; border-radius: .15cqw; }
+.leyenda-etiquetas { display: flex; justify-content: space-between; font-size: .9cqw; color: var(--text-3); margin-top: .3cqw; }
+.borde-ejemplo { display: inline-block; width: 1.1cqw; height: .8cqw; border: .18cqw solid var(--accent); border-radius: .15cqw; vertical-align: -.05cqw; margin-right: .5cqw; }
+#barras-captura svg { display: block; width: 100%; height: auto; }
+.leaflet-container { font: 1cqw Inter, system-ui, sans-serif; background: var(--surface); }
+.leaflet-tooltip.etiqueta-beat { background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font-size: 13px; }
+.leaflet-tooltip.etiqueta-beat::before { display: none; }
 
-@media (max-width: 900px) {
-  .mapa-grid { grid-template-columns: 1fr; }
-  #mapa { height: 460px; }
-  .flujo { grid-template-columns: 1fr 1fr; }
-  .dos-col { grid-template-columns: minmax(0, 1fr); }
-}
-@media (max-width: 640px) {
-  header.hero { padding-top: 36px; }
-  .stats { grid-template-columns: 1fr 1fr; }
-  .preguntas { grid-template-columns: 1fr; }
-  .flujo { grid-template-columns: 1fr; }
-  #mapa { height: 400px; }
-  h2 { font-size: 22px; }
-}
+/* Barra de control */
+.barra { position: fixed; left: 0; right: 0; bottom: 0; height: 44px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 13px; color: var(--text-3); }
+.barra button { border: 0; background: transparent; color: var(--text-2); font: 500 13px Inter, system-ui, sans-serif; padding: 7px 11px; border-radius: 8px; cursor: pointer; }
+.barra button:hover { background: var(--surface); color: var(--text); }
+.barra button:disabled { opacity: .35; cursor: default; background: transparent; }
+#contador { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; }
+.progreso { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent); transition: width .3s ease; }
+.ayuda { position: fixed; right: 14px; bottom: 12px; font-size: 12px; color: var(--text-3); }
+@media (max-width: 700px) { .ayuda { display: none; } }
+:fullscreen .barra, :fullscreen .ayuda { opacity: 0; transition: opacity .3s; }
+:fullscreen .barra:hover { opacity: 1; }
 </style>
 </head>
 <body>
 
-<header class="hero">
-  <div class="wrap">
-    <div class="kicker">Proyecto integrador de Big Data</div>
+<div class="escenario">
+<main class="deck" id="deck" aria-roledescription="presentación">
+
+  <!-- 1 · Portada -->
+  <section class="slide portada" data-titulo="Portada">
+    <div class="franja" aria-hidden="true"></div>
+    <div class="kicker">Proyecto integrador de Big Data · Fase 4</div>
     <h1>Dónde, cuándo y qué delitos ocurren en Chicago</h1>
-    <p class="lead">Con los datos abiertos de la policía de Chicago y un clúster de Hadoop y Spark en AWS, predecimos cuántos incidentes habrá la próxima semana en cada zona de patrullaje y bloque de 6 horas, para saber a qué zonas mandar más patrullas.</p>
-    <div class="stats">
-      <div class="stat"><b>1,002,283</b><span>incidentes de 2022 a 2025</span></div>
-      <div class="stat"><b id="stat-beats">274</b><span>beats (zonas de patrullaje)</span></div>
-      <div class="stat"><b>4 turnos</b><span>de 6 horas por día</span></div>
-      <div class="stat"><b id="stat-captura">19.8 %</b><span>de los incidentes en el 10 % de zonas-turno que señala el modelo</span></div>
+    <p class="lead">Predecimos cuántos incidentes habrá la próxima semana en cada zona de patrullaje y bloque de 6 horas, con un clúster de Hadoop y Spark en AWS.</p>
+    <p class="equipo">Valentino De Paola Gallardo · Carlos David Gonzalez Davila · Eduardo Lopez Uresti</p>
+  </section>
+
+  <!-- 2 · La pregunta -->
+  <section class="slide" data-titulo="La pregunta">
+    <div class="kicker">La pregunta de negocio</div>
+    <h2>¿A qué zonas y turnos conviene mandar más patrullas la próxima semana?</h2>
+    <div class="cuerpo col-2" style="grid-template-columns: repeat(3, 1fr); align-content: start; margin-top: 1cqw">
+      <div class="tarjeta"><h3>Para quién</h3><p class="texto" style="margin-top:.8cqw">El mando policial que reparte las patrullas cada semana. Necesita saber dónde y cuándo, y qué tipo de delito esperar.</p></div>
+      <div class="tarjeta"><h3>Qué predecimos</h3><p class="texto" style="margin-top:.8cqw">Los incidentes de la <b>próxima semana</b> en cada <b>zona-turno</b>: un beat (zona de patrullaje) en un bloque de 6 horas.</p></div>
+      <div class="tarjeta"><h3>Cómo lo medimos</h3><p class="texto" style="margin-top:.8cqw">Además del error, la <b>captura</b>: qué parte de los incidentes cae en el 10 % de zonas-turno que señala el modelo.</p></div>
     </div>
-  </div>
-</header>
+    <p class="chico">274 beats × 4 turnos = 1,096 zonas-turno. Cada semana se señalan 110.</p>
+  </section>
 
-<nav class="secciones" aria-label="Secciones">
-  <div class="wrap">
-    <a href="#mapa-seccion">Mapa de predicciones</a>
-    <a href="#preguntas">Las cinco preguntas</a>
-    <a href="#modelos">Modelos</a>
-    <a href="#pipeline">Cómo lo hicimos</a>
-  </div>
-</nav>
+  <!-- 3 · Datos y arquitectura -->
+  <section class="slide" data-titulo="Datos y arquitectura">
+    <div class="kicker">Datos y arquitectura</div>
+    <h2>Un millón de incidentes en un data lake de tres capas</h2>
+    <div class="cifras">
+      <div class="tarjeta cifra"><b>1,002,283</b><span>incidentes de 2022 a 2025</span></div>
+      <div class="tarjeta cifra"><b>274</b><span>beats en el modelo</span></div>
+      <div class="tarjeta cifra"><b>208</b><span>semanas de historia</span></div>
+      <div class="tarjeta cifra"><b>10</b><span>semanas de prueba (oct. a dic. de 2025)</span></div>
+    </div>
+    <div class="flujo">
+      <div class="tarjeta paso"><div class="capa">raw</div><h3>Ingesta</h3><p>El CSV de cada año del portal de datos abiertos, tal cual, en HDFS.</p></div>
+      <div class="tarjeta paso"><div class="capa">processed</div><h3>Limpieza</h3><p>Fechas en UTC, nulos, duplicados y coordenadas fuera de Chicago.</p></div>
+      <div class="tarjeta paso"><div class="capa">curated</div><h3>Features</h3><p>Malla beat × turno × semana con ceros y las semanas anteriores.</p></div>
+      <div class="tarjeta paso"><div class="capa">SparkML</div><h3>Modelos</h3><p>Random Forest, GBT y regresión logística.</p></div>
+      <div class="tarjeta paso"><div class="capa">vista</div><h3>Resultados</h3><p>Gráficas y esta presentación, que solo lee agregados.</p></div>
+    </div>
+    <div class="stack"><span><b>AWS EC2</b> con Terraform</span><span><b>Hadoop 3.5</b> HDFS y YARN</span><span><b>Spark 4.2</b> PySpark y SparkML</span><span><b>Hive</b> catálogo de tablas</span><span><b>JupyterLab</b> por túnel SSH</span></div>
+  </section>
 
-<main>
-<section id="mapa-seccion">
-  <div class="wrap">
-    <h2>Predicción contra lo que pasó</h2>
-    <p class="seccion-intro">Cada polígono es un beat. Elige una de las 10 semanas de prueba de 2025 y un turno para comparar lo que predijo Random Forest con los incidentes que de verdad hubo. Con borde naranja están las zonas-turno que el modelo señaló: el 10 % con la predicción más alta de esa semana.</p>
-
-    <div class="controles">
-      <div class="control">
-        <label for="semana">Semana de 2025</label>
-        <select id="semana"></select>
+  <!-- 4 · ¿Dónde? -->
+  <section class="slide" data-titulo="¿Dónde?">
+    <div class="kicker">Pregunta 1 · ¿Dónde?</div>
+    <div class="cuerpo col-img">
+      <div class="figura"><img src="img/C_p1_mapa_incidentes_2025.png" alt="Mapa de calor de incidentes en Chicago en 2025"></div>
+      <div style="display:grid; gap:1.6cqw">
+        <h2 style="max-width:none">El delito se concentra en el centro, el oeste y el sur</h2>
+        <div><div class="dato-grande">35.6 %</div><p class="texto">de los incidentes cae en el 10 % de las celdas de 500 m.</p></div>
+        <p class="texto">Los distritos con más actividad son el <b>8, 12, 1, 6 y 18</b>.</p>
       </div>
-      <div class="control">
-        <label id="lbl-turno">Turno</label>
-        <div class="segmentado" id="turno" role="group" aria-labelledby="lbl-turno"></div>
+    </div>
+  </section>
+
+  <!-- 5 · ¿Cuándo? -->
+  <section class="slide" data-titulo="¿Cuándo?">
+    <div class="kicker">Pregunta 2 · ¿Cuándo?</div>
+    <h2>Por la tarde entre semana y de madrugada el fin de semana</h2>
+    <div class="cuerpo col-img-ancha">
+      <div class="figura"><img src="img/C_p2_dia_hora_2025.png" alt="Mapa de calor de incidentes por día de la semana y hora"></div>
+      <p class="texto">El pico es a las <b>15:00</b>, y de 15:00 a 19:00 entre semana. El sábado y el domingo sube la madrugada. El <b>60.7 %</b> ocurre entre el mediodía y la medianoche.</p>
+    </div>
+  </section>
+
+  <!-- 6 · ¿Qué tipo? -->
+  <section class="slide" data-titulo="¿Qué tipo?">
+    <div class="kicker">Pregunta 3 · ¿Qué tipo?</div>
+    <h2>Tres tipos de delito suman más de la mitad</h2>
+    <div class="cuerpo col-img" style="grid-template-columns: 1.5fr 1fr">
+      <div class="figura"><img src="img/C_p3_tipos_2025.png" alt="Barras de los tipos de delito más frecuentes en 2025"></div>
+      <ul class="puntos">
+        <li><b>Robo sin violencia:</b> 23.2 %</li>
+        <li><b>Agresión física:</b> 17.9 %</li>
+        <li><b>Daño a la propiedad:</b> 11.0 %</li>
+        <li>Dejamos fuera de los modelos narcóticos y armas: dependen más de dónde patrulla la policía que de dónde ocurren.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7 · A lo largo del año -->
+  <section class="slide" data-titulo="A lo largo del año">
+    <div class="kicker">Pregunta 4 · ¿Cómo cambia en el año?</div>
+    <h2>Más delitos en verano, y 2025 fue un año más bajo</h2>
+    <div class="cuerpo col-img-ancha">
+      <div class="figura"><img src="img/C_p4_serie_semanal_2022_2025.png" alt="Serie semanal de incidentes de 2022 a 2025"></div>
+      <p class="texto">En verano hay <b>9 % más</b> incidentes. 2023 y 2024 tuvieron más que 2025, así que promediar toda la historia sobreestima el final de 2025: lo que más anticipa una zona es su nivel reciente.</p>
+    </div>
+  </section>
+
+  <!-- 8 · Desigualdad -->
+  <section class="slide" data-titulo="Desigualdad">
+    <div class="kicker">Pregunta 5 · ¿Qué tan desigual?</div>
+    <div class="cuerpo col-img">
+      <div class="figura"><img src="img/C_p5_concentracion_2025.png" alt="Curva de concentración de incidentes por zona-turno"></div>
+      <div style="display:grid; gap:1.6cqw">
+        <h2 style="max-width:none">Pocas zonas-turno cargan buena parte del trabajo</h2>
+        <div><div class="dato-grande">20.4 %</div><p class="texto">de los incidentes cae en el 10 % de zonas-turno más activas.</p></div>
+        <p class="texto">La mitad menos activa junta el <b>32.1 %</b>. Por eso tiene sentido señalar unas cuantas zonas-turno cada semana.</p>
       </div>
-      <div class="control">
-        <label id="lbl-capa">Qué se pinta</label>
-        <div class="segmentado" id="capa" role="group" aria-labelledby="lbl-capa">
-          <button data-capa="rf" aria-pressed="true">Predicción</button>
-          <button data-capa="real" aria-pressed="false">Lo que pasó</button>
-          <button data-capa="error" aria-pressed="false">Diferencia</button>
+    </div>
+  </section>
+
+  <!-- 9 · Modelos de la Fase 3 -->
+  <section class="slide" data-titulo="Modelos">
+    <div class="kicker">Modelos · Fase 3</div>
+    <h2>Random Forest le gana a la línea base, pero no al promedio histórico</h2>
+    <div class="tarjeta">
+      <table>
+        <thead><tr><th>Modelo (datos de 2025)</th><th>RMSE</th><th>MAE</th><th>R²</th><th>Captura</th><th>PAI</th></tr></thead>
+        <tbody>
+          <tr><td>Promedio histórico de la zona-turno</td><td>2.101</td><td>1.614</td><td>0.372</td><td>20.0 %</td><td>2.00</td></tr>
+          <tr class="destacada"><td>Random Forest (elegido)</td><td>2.117</td><td>1.642</td><td>0.363</td><td>19.8 %</td><td>1.98</td></tr>
+          <tr><td>GBT</td><td>2.132</td><td>1.655</td><td>0.354</td><td>19.8 %</td><td>1.98</td></tr>
+          <tr><td>Promedio de 4 semanas (línea base de la Fase 2)</td><td>2.259</td><td>1.722</td><td>0.275</td><td>19.0 %</td><td>1.90</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="conclusion">Elegimos Random Forest porque se equivoca menos que GBT en las 10 semanas de prueba y entrena en un tercio del tiempo. Pero la variable que más pesa es el propio promedio histórico, y solo no lo supera.</p>
+  </section>
+
+  <!-- 10 · Cómo mejoramos -->
+  <section class="slide" data-titulo="Cómo mejoramos">
+    <div class="kicker">Después de la Fase 3</div>
+    <h2>Con cuatro años y variables nuevas, el modelo por fin le gana</h2>
+    <div class="cuerpo col-2" style="grid-template-columns: 1.4fr 1fr; align-items: center">
+      <div class="tarjeta grafica" id="grafica-mae"></div>
+      <ul class="puntos">
+        <li><b>Más historia (2022 a 2025)</b> sola no basta: promediar años con más delitos empeora todo.</li>
+        <li><b>Lo que ayudó:</b> el promedio de las últimas 52 semanas, la semana del año, los beats vecinos y los festivos.</li>
+        <li>Random Forest con esas variables le gana al promedio histórico en las <b>10 semanas</b> de prueba.</li>
+        <li>Aun así, la regla simple de 52 semanas queda a solo 0.024 de error.</li>
+      </ul>
+    </div>
+    <p class="chico">Error absoluto medio (MAE) en incidentes por zona-turno, semanas 42 a 51 de 2025. Menos es mejor.</p>
+  </section>
+
+  <!-- 11 · Mapa en vivo -->
+  <section class="slide mapa-slide" data-titulo="Mapa en vivo">
+    <div style="display:flex; justify-content:space-between; align-items:end; gap:2cqw; flex-wrap:wrap">
+      <div><div class="kicker">Demo</div><h2>Lo que predijo el modelo contra lo que pasó</h2></div>
+      <div class="controles">
+        <div class="control"><label for="semana">Semana de 2025</label><select id="semana"></select></div>
+        <div class="control"><label id="lbl-turno">Turno</label><div class="segmentado" id="turno" role="group" aria-labelledby="lbl-turno"></div></div>
+        <div class="control"><label id="lbl-capa">Qué se pinta</label>
+          <div class="segmentado" id="capa" role="group" aria-labelledby="lbl-capa">
+            <button data-capa="rf" aria-pressed="true">Predicción</button>
+            <button data-capa="real" aria-pressed="false">Lo que pasó</button>
+            <button data-capa="error" aria-pressed="false">Diferencia</button>
+          </div>
         </div>
       </div>
     </div>
-
     <div class="mapa-grid">
-      <div class="panel"><div id="mapa" role="img" aria-label="Mapa de Chicago por beat"></div></div>
-      <aside class="panel lado">
+      <div id="mapa" role="img" aria-label="Mapa de Chicago por beat"></div>
+      <aside class="tarjeta lado">
         <div>
           <h3>Captura de la semana</h3>
-          <div class="metrica-grande" id="captura-semana">—</div>
-          <p class="small muted" id="captura-texto"></p>
-          <div id="barras-captura" style="margin-top:12px"></div>
+          <div class="metrica" id="captura-semana">—</div>
+          <p class="chico" id="captura-texto"></p>
+          <div id="barras-captura" style="margin-top:.6cqw"></div>
         </div>
         <div>
           <h3 id="leyenda-titulo">Incidentes</h3>
           <div class="leyenda" id="leyenda"></div>
           <div class="leyenda-etiquetas" id="leyenda-etiquetas"></div>
-          <p class="small muted" style="margin-top:10px"><span class="borde-ejemplo"></span><span id="leyenda-borde">señalada por el modelo</span></p>
-        </div>
-        <div>
-          <h3>Error de la semana</h3>
-          <div id="error-semana"></div>
+          <p class="chico" style="margin-top:.6cqw"><span class="borde-ejemplo"></span><span id="leyenda-borde">señalada por el modelo</span></p>
         </div>
         <div>
           <h3 id="detalle-titulo">Beat</h3>
-          <div id="detalle"><p class="detalle-vacio">Pasa el mouse o toca un beat para ver sus números.</p></div>
+          <div id="detalle"><p class="chico">Pasa el mouse sobre un beat para ver sus números.</p></div>
         </div>
       </aside>
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="preguntas">
-  <div class="wrap">
-    <h2>Las cinco preguntas</h2>
-    <p class="seccion-intro">La pregunta del proyecto (en qué zonas, días y horarios es más probable un delito, y de qué tipo) la partimos en cinco, una por gráfica. Todas salen de la capa processed del data lake.</p>
-    <div class="control toggle-anios">
-      <label id="lbl-anios">Datos</label>
-      <div class="segmentado" id="anios" role="group" aria-labelledby="lbl-anios">
-        <button data-anios="2025" aria-pressed="true">2025</button>
-        <button data-anios="2022_2025" aria-pressed="false">2022 a 2025</button>
-      </div>
-      <p class="small muted" style="margin-top:8px">Los porcentajes de cada tarjeta son de 2025.</p>
+  <!-- 12 · Impacto en patrullaje -->
+  <section class="slide" data-titulo="Impacto">
+    <div class="kicker">Impacto en patrullaje</div>
+    <h2>Con el 10 % de las zonas-turno se cubre el doble de incidentes que al azar</h2>
+    <div class="cuerpo col-2" style="grid-template-columns: 1.4fr 1fr; align-items: center">
+      <div class="tarjeta grafica" id="grafica-impacto"></div>
+      <ul class="puntos">
+        <li>Cada semana el modelo señala <b>110 de 1,096</b> zonas-turno.</li>
+        <li>Ahí caen en promedio <b>752 incidentes por semana</b> (19.8 %), contra 379 si se eligieran al azar: un <b>PAI de 1.98</b>.</li>
+        <li>Ni sabiendo el futuro se pasa de 987 (26 %). La meta de la Fase 2 (40 %) <b>no se alcanza con esta unidad</b> de análisis: habría que usar zonas más chicas o bloques de horas más cortos.</li>
+      </ul>
     </div>
-    <div class="preguntas">
-      <article class="panel pregunta">
-        <div class="num">Pregunta 1</div>
-        <h3>¿En qué zonas se concentran los delitos?</h3>
-        <p class="muted small">En el centro, el oeste y el sur (distritos 8, 12, 1, 6 y 18). El 10 % de las celdas de 500 m concentra el 35.6 % de los incidentes.</p>
-        <img data-fig="C_p1_mapa_incidentes" alt="Mapa de calor de incidentes en Chicago" loading="lazy">
-      </article>
-      <article class="panel pregunta">
-        <div class="num">Pregunta 5</div>
-        <h3>¿Qué tan desigual es la carga entre zonas y turnos?</h3>
-        <p class="muted small">El 10 % de las zonas-turno más activas concentra el 20.4 % de los incidentes. La mitad menos activa, el 32.1 %.</p>
-        <img data-fig="C_p5_concentracion" alt="Curva de concentración de incidentes por zona-turno" loading="lazy">
-      </article>
-      <article class="panel pregunta">
-        <div class="num">Pregunta 2</div>
-        <h3>¿A qué horas y qué días ocurren más?</h3>
-        <p class="muted small">Por la tarde, con el pico a las 15:00, y en la madrugada del sábado y el domingo. El 60.7 % ocurre entre el mediodía y la medianoche.</p>
-        <img data-fig="C_p2_dia_hora" alt="Mapa de calor de incidentes por día y hora" loading="lazy">
-      </article>
-      <article class="panel pregunta">
-        <div class="num">Pregunta 3</div>
-        <h3>¿Qué tipos de delito predominan?</h3>
-        <p class="muted small">Robo sin violencia (23.2 %), agresión física (17.9 %) y daño a la propiedad (11.0 %) suman más de la mitad.</p>
-        <img data-fig="C_p3_tipos" alt="Barras de los tipos de delito más frecuentes" loading="lazy">
-      </article>
-      <article class="panel pregunta ancha">
-        <div class="num">Pregunta 4</div>
-        <h3>¿Cómo cambian a lo largo del año?</h3>
-        <p class="muted small">En verano hay 9 % más incidentes. Con los cuatro años se ve que 2023 y 2024 tuvieron más que 2025, por eso promediar toda la historia sobreestima el final de 2025.</p>
-        <img data-fig="C_p4_serie_semanal" alt="Serie semanal de incidentes" loading="lazy">
-      </article>
-    </div>
-  </div>
-</section>
+    <p class="chico">Promedio de las semanas 42 a 51 de 2025, con Random Forest de la Fase 3. En total hubo 3,792 incidentes por semana en las zonas del modelo.</p>
+  </section>
 
-<section id="modelos">
-  <div class="wrap">
-    <h2>Modelos</h2>
-    <p class="seccion-intro">Todos se prueban con las mismas semanas: de la 42 a la 51 de 2025. La captura es el porcentaje de incidentes que cae en el 10 % de zonas-turno que señala cada modelo; si se supiera el futuro, el máximo sería 26 %.</p>
-
-    <div class="panel tabla-bloque">
-      <h3>Fase 3: incidentes por zona-turno con datos de 2025</h3>
-      <p class="muted small">Random Forest y GBT de SparkML contra dos reglas simples.</p>
-      <div class="tabla-scroll"><table>
-        <thead><tr><th>Modelo</th><th>RMSE</th><th>MAE</th><th>R²</th><th>Captura</th><th>PAI</th></tr></thead>
-        <tbody>
-          <tr><td>Promedio histórico de la zona-turno</td><td>2.101</td><td>1.614</td><td>0.372</td><td>20.0 %</td><td>2.00</td></tr>
-          <tr class="destacada"><td>Random Forest (elegido)</td><td>2.117</td><td>1.642</td><td>0.363</td><td>19.8 %</td><td>1.98</td></tr>
-          <tr><td>GBT</td><td>2.132</td><td>1.655</td><td>0.354</td><td>19.8 %</td><td>1.98</td></tr>
-          <tr><td>Promedio de 4 semanas (línea base)</td><td>2.259</td><td>1.722</td><td>0.275</td><td>19.0 %</td><td>1.90</td></tr>
-        </tbody>
-      </table></div>
-      <p class="conclusion">Random Forest le gana a la línea base y a GBT, pero no al promedio histórico de cada zona-turno.</p>
-    </div>
-
-    <div class="dos-col">
-      <div class="panel tabla-bloque">
-        <h3>Un año contra cuatro</h3>
-        <p class="muted small">El mismo pipeline con 2022 a 2025 (issue #20).</p>
-        <div class="tabla-scroll"><table>
-          <thead><tr><th>Modelo</th><th>MAE 2025</th><th>MAE 2022–25</th><th>Le gana al histórico</th></tr></thead>
-          <tbody>
-            <tr><td>Promedio histórico</td><td>1.614</td><td>1.661</td><td>—</td></tr>
-            <tr class="destacada"><td>Random Forest</td><td>1.642</td><td>1.655</td><td>8 de 10 semanas</td></tr>
-            <tr><td>GBT</td><td>1.655</td><td>1.666</td><td>5 de 10</td></tr>
-            <tr><td>Promedio de 4 semanas</td><td>1.722</td><td>1.722</td><td>3 de 10</td></tr>
-          </tbody>
-        </table></div>
-        <p class="conclusion">Con más historia el modelo ya le gana a su promedio histórico, pero todo queda peor que con un año: lo que más anticipa una zona es su nivel reciente.</p>
-      </div>
-      <div class="panel tabla-bloque">
-        <h3>Variables nuevas</h3>
-        <p class="muted small">Retrasos de 2 y 52 semanas, estacionalidad, vecinos y festivos (issue #21).</p>
-        <div class="tabla-scroll"><table>
-          <thead><tr><th>Modelo</th><th>MAE</th><th>Captura</th></tr></thead>
-          <tbody>
-            <tr class="destacada"><td>Random Forest con variables nuevas</td><td>1.585</td><td>19.9 %</td></tr>
-            <tr><td>Promedio de las últimas 52 semanas</td><td>1.609</td><td>20.0 %</td></tr>
-            <tr><td>Random Forest de la Fase 3</td><td>1.643</td><td>19.6 %</td></tr>
-            <tr><td>Promedio histórico</td><td>1.661</td><td>19.5 %</td></tr>
-          </tbody>
-        </table></div>
-        <p class="conclusion">Por fin le gana al promedio histórico en las 10 semanas. La variable clave es el promedio de las últimas 52 semanas.</p>
-      </div>
-    </div>
-
-    <div class="panel tabla-bloque">
-      <h3>Tipo de delito</h3>
-      <p class="muted small">Un clasificador de 7 clases para cada incidente, con lo que se sabe antes de que ocurra (issue #22).</p>
-      <div class="dos-col">
-        <div class="tabla-scroll"><table>
-          <thead><tr><th>Modelo</th><th>Exactitud</th><th>Entre los 2 más probables</th><th>Error de la mezcla</th></tr></thead>
-          <tbody>
-            <tr><td>Regresión logística</td><td>29.4 %</td><td>48.5 %</td><td>4.66 pts</td></tr>
-            <tr><td>Random Forest</td><td>29.3 %</td><td>48.5 %</td><td>—</td></tr>
-            <tr class="destacada"><td>Tipo más frecuente de la zona-turno</td><td>29.1 %</td><td>48.9 %</td><td>4.65 pts</td></tr>
-            <tr><td>Tipo más común de la ciudad</td><td>24.6 %</td><td>44.0 %</td><td>6.44 pts</td></tr>
-          </tbody>
-        </table>
-        <p class="conclusion">Ningún clasificador le gana a la regla de la zona-turno. Lo útil es anticipar la mezcla de tipos de cada zona, no el tipo de un incidente suelto.</p>
+  <!-- 13 · Tipo de delito -->
+  <section class="slide" data-titulo="Tipo de delito">
+    <div class="kicker">¿Qué tipo de delito esperar?</div>
+    <h2>Se anticipa la mezcla de cada zona, no el incidente suelto</h2>
+    <div class="cuerpo col-2" style="grid-template-columns: 1.3fr 1fr">
+      <div style="display:flex; flex-direction:column; gap:1.4cqw">
+        <div class="tarjeta">
+          <table>
+            <thead><tr><th>Clasificador (7 clases)</th><th>Exactitud</th><th>Top 2</th></tr></thead>
+            <tbody>
+              <tr><td>Regresión logística</td><td>29.4 %</td><td>48.5 %</td></tr>
+              <tr><td>Random Forest</td><td>29.3 %</td><td>48.5 %</td></tr>
+              <tr class="destacada"><td>Tipo más frecuente de la zona-turno</td><td>29.1 %</td><td>48.9 %</td></tr>
+              <tr><td>Tipo más común de la ciudad</td><td>24.6 %</td><td>44.0 %</td></tr>
+            </tbody>
+          </table>
         </div>
-        <img src="img/T_matriz_confusion.png" alt="Matriz de confusión del clasificador de tipo de delito" loading="lazy" style="width:100%;border-radius:8px;background:#fff">
+        <p class="conclusion">Ningún clasificador le gana a la regla de la zona-turno. Pero la mezcla de tipos de cada zona se anticipa con un error de <b>4.7 puntos</b>, contra 6.4 si se usa la de la ciudad. Eso sirve para decidir qué tipo de patrullaje mandar.</p>
+      </div>
+      <div class="figura"><img src="img/T_matriz_confusion.png" alt="Matriz de confusión del clasificador de tipo de delito"></div>
+    </div>
+  </section>
+
+  <!-- 14 · Lo que aprendimos -->
+  <section class="slide" data-titulo="Lo que aprendimos">
+    <div class="kicker">Conclusiones</div>
+    <h2>Lo que aprendimos</h2>
+    <ul class="puntos" style="max-width: 78cqw; margin-top: 1cqw">
+      <li><b>El nivel reciente de cada zona es lo que más predice.</b> Las reglas simples bien elegidas son difíciles de superar, y hay que compararse siempre contra ellas.</li>
+      <li><b>El modelo sí ayuda a repartir patrullas:</b> duplica lo que se cubriría al azar y llega al 76 % de lo que lograría un modelo perfecto.</li>
+      <li><b>Las metas deben ajustarse a la unidad de análisis.</b> Con beats y turnos de 6 horas, el máximo posible es 26 % de captura.</li>
+      <li><b>El tipo de delito depende de dónde.</b> La mezcla de la zona responde mejor que cualquier clasificador.</li>
+      <li><b>Big Data a escala de una sola máquina:</b> un clúster pseudo-distribuido en AWS alcanzó para un millón de registros y cuatro años de historia.</li>
+    </ul>
+  </section>
+
+  <!-- 15 · Próximos pasos -->
+  <section class="slide" data-titulo="Próximos pasos">
+    <div class="kicker">Próximos pasos</div>
+    <h2>Qué seguiría</h2>
+    <div class="cuerpo col-2" style="align-content:start; margin-top:1cqw">
+      <ul class="puntos">
+        <li>Un pronóstico del clima real, que en la prueba optimista bajó el error a 1.574.</li>
+        <li>Zonas más chicas o turnos más cortos, para que la captura pueda acercarse a la meta.</li>
+        <li>Ingesta y reentrenamiento automáticos cada semana, con MLflow para registrar los modelos.</li>
+        <li>Una API que reciba beat y turno y devuelva la predicción.</li>
+      </ul>
+      <div class="tarjeta" style="display:grid; gap:1.2cqw; align-content:start">
+        <h3>Gracias</h3>
+        <p class="texto">Código, notebooks y documentación:<br><a href="https://github.com/valentinodepaola/proyecto-integrador-big-data">github.com/valentinodepaola/proyecto-integrador-big-data</a></p>
+        <p class="chico">Datos: <a href="https://data.cityofchicago.org/">Chicago Data Portal</a>.</p>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="pipeline">
-  <div class="wrap">
-    <h2>Cómo lo hicimos</h2>
-    <p class="seccion-intro">Todo corre en una instancia EC2 con Hadoop y Spark, siguiendo un data lake de tres capas. Los notebooks y el diagrama completo de la arquitectura están en el <a href="https://github.com/valentinodepaola/proyecto-integrador-big-data/blob/main/docs/Documentacion-General.md">repositorio</a>.</p>
-    <div class="flujo">
-      <div class="panel paso"><div class="capa">raw</div><h3>Ingesta</h3><p>CSV de cada año del portal de datos abiertos, tal cual, en HDFS.</p></div>
-      <div class="panel paso"><div class="capa">processed</div><h3>Limpieza</h3><p>Fechas en UTC, nulos, duplicados y coordenadas atípicas. Tabla Hive <span class="mono">chicago.crimes</span>.</p></div>
-      <div class="panel paso"><div class="capa">curated</div><h3>Features</h3><p>Malla beat × turno × semana con ceros y las semanas anteriores como variables.</p></div>
-      <div class="panel paso"><div class="capa">SparkML</div><h3>Modelos</h3><p>Random Forest, GBT y regresión logística, probados con las últimas 10 semanas de 2025.</p></div>
-      <div class="panel paso"><div class="capa">vista</div><h3>Resultados</h3><p>Gráficas en matplotlib y esta página, que lee solo agregados.</p></div>
-    </div>
-    <div class="panel stack">
-      <span><b>AWS EC2</b> m7i-flex.large con Terraform</span>
-      <span><b>Hadoop 3.5</b> HDFS y YARN</span>
-      <span><b>Spark 4.2</b> PySpark y SparkML</span>
-      <span><b>Hive</b> catálogo de tablas</span>
-      <span><b>JupyterLab</b> por túnel SSH</span>
-    </div>
-  </div>
-</section>
 </main>
+</div>
 
-<footer>
-  <div class="wrap">
-    <span>Valentino De Paola, Eduardo López y Carlos David · Proyecto integrador de tecnologías de Big Data</span>
-    <span>Datos: <a href="https://data.cityofchicago.org/">Chicago Data Portal</a> · <a href="https://github.com/valentinodepaola/proyecto-integrador-big-data">Repositorio</a></span>
-  </div>
-</footer>
+<nav class="barra" aria-label="Navegación de la presentación">
+  <button id="anterior" aria-label="Diapositiva anterior">← Anterior</button>
+  <span id="contador">1 / 15</span>
+  <button id="siguiente" aria-label="Diapositiva siguiente">Siguiente →</button>
+  <button id="completa" aria-label="Pantalla completa">Pantalla completa</button>
+  <div class="progreso" id="progreso"></div>
+</nav>
+<div class="ayuda">← → para avanzar · F pantalla completa</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 (() => {
-  const TURNOS_TODOS = -1;
-  const estado = { semana: null, turno: 2, capa: "rf", beatActivo: null };   // arranca en 12-18, el turno más activo
   const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   const fmt = (n, d = 1) => n.toLocaleString("es-MX", { minimumFractionDigits: d, maximumFractionDigits: d });
   const pct = n => fmt(n * 100) + " %";
 
-  // Fechas de cada semana: la semana s empieza el día 7s + 1 del año
-  const inicioSemana = (anio, s) => new Date(Date.UTC(anio, 0, 1 + 7 * s));
-  const fechaCorta = d => d.toLocaleDateString("es-MX", { day: "numeric", month: "short", timeZone: "UTC" });
-
-  // Figuras: 2025 o 2022 a 2025
-  function pintarFiguras(anios) {
-    document.querySelectorAll("img[data-fig]").forEach(img => { img.src = `img/${img.dataset.fig}_${anios}.png`; });
-    document.querySelectorAll("#anios button").forEach(b => b.setAttribute("aria-pressed", b.dataset.anios === anios));
+  // ---------- Navegación ----------
+  const slides = [...document.querySelectorAll(".slide")];
+  let actual = 0;
+  function ir(i) {
+    actual = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, j) => { s.classList.toggle("activa", j === actual); s.setAttribute("aria-hidden", j !== actual); });
+    document.getElementById("contador").textContent = `${actual + 1} / ${slides.length}`;
+    document.getElementById("progreso").style.width = `${(actual + 1) / slides.length * 100}%`;
+    document.getElementById("anterior").disabled = actual === 0;
+    document.getElementById("siguiente").disabled = actual === slides.length - 1;
+    document.title = `${slides[actual].dataset.titulo} · Delitos en Chicago`;
+    history.replaceState(null, "", `#${actual + 1}`);
+    dibujarGraficas();
   }
-  document.querySelectorAll("#anios button").forEach(b => b.addEventListener("click", () => pintarFiguras(b.dataset.anios)));
-  pintarFiguras("2025");
+  document.getElementById("anterior").addEventListener("click", () => ir(actual - 1));
+  document.getElementById("siguiente").addEventListener("click", () => ir(actual + 1));
+  const pantallaCompleta = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+  document.getElementById("completa").addEventListener("click", pantallaCompleta);
+  document.addEventListener("keydown", e => {
+    if (e.target.closest("select, input, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (["ArrowRight", "PageDown", " "].includes(e.key)) { e.preventDefault(); ir(actual + 1); }
+    else if (["ArrowLeft", "PageUp"].includes(e.key)) { e.preventDefault(); ir(actual - 1); }
+    else if (e.key === "Home") ir(0);
+    else if (e.key === "End") ir(slides.length - 1);
+    else if (e.key === "f" || e.key === "F") pantallaCompleta();
+  });
+  let toqueX = null;
+  document.addEventListener("touchstart", e => { toqueX = e.target.closest("#mapa") ? null : e.touches[0].clientX; }, { passive: true });
+  document.addEventListener("touchend", e => {
+    if (toqueX === null) return;
+    const dx = e.changedTouches[0].clientX - toqueX;
+    if (Math.abs(dx) > 50) ir(actual + (dx < 0 ? 1 : -1));
+    toqueX = null;
+  });
+  addEventListener("hashchange", () => ir((parseInt(location.hash.slice(1)) || 1) - 1));
+
+  // ---------- Gráficas propias (SVG) ----------
+  function dibujarGraficas() {
+    const mae = document.getElementById("grafica-mae");
+    if (slides[actual].contains(mae)) {
+      // Gráfica de puntos: el eje no empieza en cero, así que no se usan barras
+      const filas = [
+        ["Promedio de 4 semanas (línea base)", 1.722, false],
+        ["Random Forest de la Fase 3", 1.642, false],
+        ["Promedio histórico de 2025", 1.614, false],
+        ["Promedio de las últimas 52 semanas", 1.609, false],
+        ["Random Forest con variables nuevas", 1.585, true],
+      ];
+      const w = 640, h = 300, izq = 250, der = 30, arriba = 14, alto = 46;
+      const x0 = 1.56, x1 = 1.74, x = v => izq + (v - x0) / (x1 - x0) * (w - izq - der);
+      const ejes = [1.58, 1.62, 1.66, 1.70].map(v => `
+        <line x1="${x(v)}" x2="${x(v)}" y1="${arriba}" y2="${arriba + filas.length * alto}" stroke="${css("--line")}"/>
+        <text x="${x(v)}" y="${arriba + filas.length * alto + 20}" text-anchor="middle" font-size="13" fill="${css("--text-3")}">${fmt(v, 2)}</text>`).join("");
+      const puntos = filas.map(([nombre, v, mejor], i) => {
+        const y = arriba + i * alto + alto / 2, color = mejor ? css("--accent") : css("--text-2");
+        return `<text x="${izq - 14}" y="${y + 5}" text-anchor="end" font-size="14" font-weight="${mejor ? 700 : 500}" fill="${mejor ? css("--text") : css("--text-2")}">${nombre}</text>
+          <line x1="${x(x0)}" x2="${x(v)}" y1="${y}" y2="${y}" stroke="${css("--line")}" stroke-width="2"/>
+          <circle cx="${x(v)}" cy="${y}" r="${mejor ? 9 : 7}" fill="${color}"/>
+          <text x="${x(v) + 14}" y="${y + 5}" font-size="14" font-weight="700" fill="${color}">${fmt(v, 3)}</text>`;
+      }).join("");
+      mae.innerHTML = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Error medio de cada modelo">${ejes}${puntos}</svg>`;
+    }
+    const imp = document.getElementById("grafica-impacto");
+    if (slides[actual].contains(imp)) {
+      const filas = [["Al azar", 379, css("--gris")], ["Random Forest", 752, css("--accent")], ["Sabiendo el futuro", 987, css("--text-2")]];
+      const w = 640, h = 250, izq = 160, der = 70, alto = 66, max = 1100, x = v => (v / max) * (w - izq - der);
+      const barras = filas.map(([nombre, v, color], i) => {
+        const y = 16 + i * alto;
+        return `<text x="${izq - 14}" y="${y + 27}" text-anchor="end" font-size="15" font-weight="600" fill="${css("--text")}">${nombre}</text>
+          <rect x="${izq}" y="${y + 6}" width="${x(v)}" height="34" rx="5" fill="${color}"/>
+          <text x="${izq + x(v) + 10}" y="${y + 29}" font-size="16" font-weight="700" fill="${css("--text")}">${v}</text>`;
+      }).join("");
+      imp.innerHTML = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Incidentes por semana en las zonas-turno señaladas">
+        ${barras}<text x="${izq}" y="${h - 8}" font-size="13" fill="${css("--text-3")}">Incidentes por semana en las 110 zonas-turno señaladas</text></svg>`;
+    }
+  }
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", dibujarGraficas);
+
+  ir((parseInt(location.hash.slice(1)) || 1) - 1);
+
+  // ---------- Mapa ----------
+  const TURNOS_TODOS = -1;
+  const estado = { semana: null, turno: 2, capa: "rf", beatActivo: null };   // arranca en 12-18, el turno más activo
+  const inicioSemana = (anio, s) => new Date(Date.UTC(anio, 0, 1 + 7 * s));   // la semana s empieza el día 7s + 1
+  const fechaCorta = d => d.toLocaleDateString("es-MX", { day: "numeric", month: "short", timeZone: "UTC" });
 
   Promise.all([fetch("datos/predicciones_2025.json").then(r => r.json()),
                fetch("datos/beats.geojson").then(r => r.json())])
     .then(([pred, geo]) => iniciarMapa(pred, geo))
     .catch(err => {
       document.getElementById("mapa").innerHTML =
-        `<p style="padding:24px" class="muted">No se pudieron cargar los datos del mapa (${err.message}). Si abriste el archivo directo, sírvelo con <span class="mono">python3 -m http.server</span> desde <span class="mono">docs/</span>.</p>`;
+        `<p style="padding:2cqw" class="texto">No se pudieron cargar los datos del mapa (${err.message}). Si abriste el archivo directo, sírvelo con <span class="mono">python3 -m http.server</span> desde <span class="mono">docs/</span>.</p>`;
     });
 
   function iniciarMapa(pred, geo) {
     const col = Object.fromEntries(pred.columnas.map((c, i) => [c, i]));
-    // indice[semana][beat][turno] = fila
-    const indice = {};
+    const indice = {};   // indice[semana][beat][turno] = fila
     const beatsConDatos = new Set();
     for (const f of pred.filas) {
-      const s = f[col.semana], b = f[col.beat], t = f[col.turno];
-      ((indice[s] ??= {})[b] ??= [])[t] = f;
-      beatsConDatos.add(b);
+      ((indice[f[col.semana]] ??= {})[f[col.beat]] ??= [])[f[col.turno]] = f;
+      beatsConDatos.add(f[col.beat]);
     }
-    document.getElementById("stat-beats").textContent = beatsConDatos.size;
-    document.getElementById("stat-captura").textContent = pct(pred.captura_total);
 
-    // Selector de semana
     const sel = document.getElementById("semana");
     for (const s of pred.semanas) {
-      const d = inicioSemana(pred.anio, s);
-      const fin = new Date(d.getTime() + 6 * 864e5);
+      const d = inicioSemana(pred.anio, s), fin = new Date(d.getTime() + 6 * 864e5);
       sel.add(new Option(`Semana ${s} · ${fechaCorta(d)} al ${fechaCorta(fin)}`, s));
     }
     estado.semana = pred.semanas[0];
     sel.addEventListener("change", () => { estado.semana = +sel.value; actualizar(); });
 
-    // Turnos
     const cont = document.getElementById("turno");
     [[TURNOS_TODOS, "Todo el día"], ...pred.turnos.map((t, i) => [i, t])].forEach(([valor, texto]) => {
       const b = document.createElement("button");
       b.textContent = texto; b.dataset.turno = valor;
-      b.setAttribute("aria-pressed", valor === estado.turno);
       b.addEventListener("click", () => { estado.turno = valor; actualizar(); });
       cont.appendChild(b);
     });
     document.querySelectorAll("#capa button").forEach(b =>
       b.addEventListener("click", () => { estado.capa = b.dataset.capa; actualizar(); }));
 
-    // Valores de un beat en la semana y turno elegidos
     function valores(b) {
       const filas = (indice[estado.semana]?.[b] ?? []).filter(Boolean);
       const elegidas = estado.turno === TURNOS_TODOS ? filas : filas.filter(f => f[col.turno] === estado.turno);
@@ -457,7 +559,7 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 20px; display: fl
                senaladas: elegidas.filter(f => f[col.senalada]).length, turnos: elegidas.length };
     }
 
-    // Cortes de color fijos por modo de turno (cuantiles de lo real en las 10 semanas) para comparar semanas
+    // Cortes de color fijos por turno (cuantiles de lo real en las 10 semanas), para poder comparar semanas
     const cortes = {};
     function cortesPara(turno) {
       if (cortes[turno]) return cortes[turno];
@@ -469,24 +571,16 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 20px; display: fl
       }
       vals.sort((a, b) => a - b);
       const q = p => vals[Math.min(vals.length - 1, Math.floor(p * vals.length))];
-      const c = [...new Set([.2, .4, .6, .75, .88, .96].map(q))].filter(v => v > 0);
-      return (cortes[turno] = c);
+      return (cortes[turno] = [...new Set([.2, .4, .6, .75, .88, .96].map(q))].filter(v => v > 0));
     }
     const SEQ = ["--seq-0", "--seq-1", "--seq-2", "--seq-3", "--seq-4", "--seq-5", "--seq-6"];
     const DIV = ["--div-neg-2", "--div-neg-1", "--div-0", "--div-pos-1", "--div-pos-2"];
-    function colorSeq(v, c) {
-      let i = 0; while (i < c.length && v >= c[i]) i++;
-      return css(SEQ[Math.round(i * (SEQ.length - 1) / c.length)]);
-    }
-    function colorDiv(d, escala) {
-      const u = escala;
-      const i = d <= -u ? 0 : d < -u / 3 ? 1 : d <= u / 3 ? 2 : d < u ? 3 : 4;
-      return css(DIV[i]);
-    }
+    const colorSeq = (v, c) => { let i = 0; while (i < c.length && v >= c[i]) i++; return css(SEQ[Math.round(i * (SEQ.length - 1) / c.length)]); };
+    const colorDiv = (d, u) => css(DIV[d <= -u ? 0 : d < -u / 3 ? 1 : d <= u / 3 ? 2 : d < u ? 3 : 4]);
+    const escalaError = c => Math.max(2, c[Math.floor(c.length / 2)] || 2);
 
-    // Mapa
-    // Sin mapa de fondo: los beats cubren toda la ciudad y así no dependemos de un servicio de teselas
-    const mapa = L.map("mapa", { zoomSnap: 0.25, scrollWheelZoom: false, attributionControl: true, maxZoom: 14 });
+    // Sin mapa de fondo: los beats cubren toda la ciudad. Sin teclado, para que las flechas cambien de diapositiva
+    const mapa = L.map("mapa", { zoomSnap: 0.25, scrollWheelZoom: false, keyboard: false, maxZoom: 14 });
     mapa.attributionControl.setPrefix(false).addAttribution('Límites: <a href="https://data.cityofchicago.org/">Chicago Data Portal</a>');
     matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => actualizar());
 
@@ -495,7 +589,7 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 20px; display: fl
       onEachFeature: (f, capa) => {
         capa.on({
           mouseover: () => { estado.beatActivo = f.properties; mostrarDetalle(); capa.setStyle({ weight: 2 }); capa.bringToFront(); },
-          mouseout: () => { capaBeats.resetStyle(capa); estiloBeat(capa); },
+          mouseout: () => estiloBeat(capa),
           click: () => { estado.beatActivo = f.properties; mostrarDetalle(); },
         });
         capa.bindTooltip(() => {
@@ -504,18 +598,18 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 20px; display: fl
         }, { sticky: true, className: "etiqueta-beat", direction: "top", offset: [0, -8] });
       },
     }).addTo(mapa);
-    const encuadrar = () => { mapa.invalidateSize(); mapa.fitBounds(capaBeats.getBounds(), { padding: [12, 12] }); };
-    encuadrar();
+    const encuadrar = () => {
+      const caja = document.getElementById("mapa").getBoundingClientRect();
+      if (!caja.width) return;   // la diapositiva está oculta
+      mapa.invalidateSize();
+      mapa.fitBounds(capaBeats.getBounds(), { padding: [10, 10] });
+    };
     new ResizeObserver(encuadrar).observe(document.getElementById("mapa"));
 
     function estiloBeat(capa) {
-      const v = valores(capa.feature.properties.beat);
-      const c = cortesPara(estado.turno);
+      const v = valores(capa.feature.properties.beat), c = cortesPara(estado.turno);
       let fill = css("--surface-2");
-      if (v) {
-        if (estado.capa === "error") fill = colorDiv(v.rf - v.real, Math.max(2, c[Math.floor(c.length / 2)] || 2));
-        else fill = colorSeq(estado.capa === "rf" ? v.rf : v.real, c);
-      }
+      if (v) fill = estado.capa === "error" ? colorDiv(v.rf - v.real, escalaError(c)) : colorSeq(estado.capa === "rf" ? v.rf : v.real, c);
       const marcado = v && v.senaladas > 0;
       capa.setStyle({ fillColor: fill, color: marcado ? css("--accent") : css("--line"), weight: marcado ? 2.2 : 0.6, fillOpacity: 0.85 });
       if (marcado) capa.bringToFront();
@@ -524,53 +618,32 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 20px; display: fl
     function leyenda() {
       const c = cortesPara(estado.turno);
       const el = document.getElementById("leyenda"), et = document.getElementById("leyenda-etiquetas");
-      const titulo = document.getElementById("leyenda-titulo");
       if (estado.capa === "error") {
-        const u = Math.max(2, c[Math.floor(c.length / 2)] || 2);
+        const u = escalaError(c);
         el.innerHTML = DIV.map(v => `<i style="background:${css(v)}"></i>`).join("");
-        et.innerHTML = `<span>predijo ${fmt(u, 0)}+ menos</span><span>igual</span><span>${fmt(u, 0)}+ más</span>`;
-        titulo.textContent = "Predicción menos lo que pasó";
+        et.innerHTML = `<span>${fmt(u, 0)}+ menos</span><span>igual</span><span>${fmt(u, 0)}+ más</span>`;
+        document.getElementById("leyenda-titulo").textContent = "Predicción menos lo que pasó";
       } else {
         el.innerHTML = SEQ.map(v => `<i style="background:${css(v)}"></i>`).join("");
         et.innerHTML = `<span>0</span><span>${c[Math.floor(c.length / 2)] ?? ""}</span><span>${c[c.length - 1] ?? ""}+</span>`;
-        titulo.textContent = estado.capa === "rf" ? "Incidentes que predijo el modelo" : "Incidentes que hubo";
+        document.getElementById("leyenda-titulo").textContent = estado.capa === "rf" ? "Incidentes que predijo el modelo" : "Incidentes que hubo";
       }
       document.getElementById("leyenda-borde").textContent = estado.turno === TURNOS_TODOS
-        ? "señalada por el modelo en al menos un turno" : "señalada por el modelo en este turno";
+        ? "señalada en al menos un turno" : "señalada por el modelo en este turno";
     }
 
     function resumenSemana() {
-      const cap = pred.captura_semanal[estado.semana];
-      document.getElementById("captura-semana").textContent = pct(cap);
+      document.getElementById("captura-semana").textContent = pct(pred.captura_semanal[estado.semana]);
       document.getElementById("captura-texto").textContent =
-        `de los incidentes de la semana ${estado.semana} cayeron en las zonas-turno que señaló Random Forest (todo el día, toda la ciudad).`;
-
-      // Barras de captura por semana
-      const ws = pred.semanas, w = 280, h = 70, pad = 2, bw = w / ws.length;
+        `de los incidentes de la semana ${estado.semana} cayó en las 110 zonas-turno que señaló Random Forest.`;
+      const ws = pred.semanas, w = 280, h = 64, pad = 2, bw = w / ws.length;
       const max = Math.max(...ws.map(s => pred.captura_semanal[s]));
-      const barras = ws.map((s, i) => {
-        const v = pred.captura_semanal[s], bh = (v / max) * (h - 16);
-        const activa = s === estado.semana;
-        return `<rect x="${i * bw + pad}" y="${h - 14 - bh}" width="${bw - 2 * pad}" height="${bh}" rx="2"
-                  fill="${activa ? css("--accent") : css("--seq-2")}"><title>Semana ${s}: ${pct(v)}</title></rect>
-                <text x="${i * bw + bw / 2}" y="${h - 2}" text-anchor="middle" font-size="9" fill="${css("--text-3")}">${s}</text>`;
-      }).join("");
-      document.getElementById("barras-captura").innerHTML =
-        `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Captura de cada semana de prueba">${barras}</svg>`;
-
-      // Error medio de la semana en el turno elegido
-      let n = 0, eRf = 0, eHist = 0;
-      for (const b of beatsConDatos) {
-        for (const f of (indice[estado.semana]?.[b] ?? []).filter(Boolean)) {
-          if (estado.turno !== TURNOS_TODOS && f[col.turno] !== estado.turno) continue;
-          n++; eRf += Math.abs(f[col.rf] - f[col.real]); eHist += Math.abs(f[col.historico] - f[col.real]);
-        }
-      }
-      const gana = eRf / n < eHist / n;
-      document.getElementById("error-semana").innerHTML = `
-        <div class="fila-dato"><span>Random Forest</span><span><b>${fmt(eRf / n, 3)}</b> incidentes</span></div>
-        <div class="fila-dato"><span>Promedio histórico</span><span>${fmt(eHist / n, 3)} incidentes</span></div>
-        <p class="small muted" style="margin-top:6px">Error medio por zona-turno${estado.turno === TURNOS_TODOS ? "" : " en este turno"}. ${gana ? "Esta vez el modelo se equivoca menos." : "Esta vez el promedio histórico se equivoca menos."}</p>`;
+      document.getElementById("barras-captura").innerHTML = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Captura de cada semana de prueba">${
+        ws.map((s, i) => {
+          const v = pred.captura_semanal[s], bh = (v / max) * (h - 16);
+          return `<rect x="${i * bw + pad}" y="${h - 14 - bh}" width="${bw - 2 * pad}" height="${bh}" rx="2" fill="${s === estado.semana ? css("--accent") : css("--seq-2")}"><title>Semana ${s}: ${pct(v)}</title></rect>
+            <text x="${i * bw + bw / 2}" y="${h - 2}" text-anchor="middle" font-size="9" fill="${css("--text-3")}">${s}</text>`;
+        }).join("")}</svg>`;
     }
 
     function mostrarDetalle() {
@@ -579,11 +652,11 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 20px; display: fl
       const v = valores(p.beat);
       document.getElementById("detalle-titulo").textContent = `Beat ${p.beat} · distrito ${p.district}`;
       document.getElementById("detalle").innerHTML = v ? `
-        <div class="fila-dato"><span>Predicción de Random Forest</span><span><b>${fmt(v.rf)}</b></span></div>
+        <div class="fila-dato"><span>Predicción</span><span><b>${fmt(v.rf)}</b></span></div>
         <div class="fila-dato"><span>Lo que pasó</span><span><b>${v.real}</b></span></div>
         <div class="fila-dato"><span>Promedio histórico</span><span>${fmt(v.historico)}</span></div>
         <div class="fila-dato"><span>Señalada</span><span>${v.senaladas ? (estado.turno === TURNOS_TODOS ? `${v.senaladas} de ${v.turnos} turnos` : "Sí") : "No"}</span></div>`
-        : `<p class="detalle-vacio">Este beat no está en los datos del modelo.</p>`;
+        : `<p class="chico">Este beat no está en los datos del modelo.</p>`;
     }
 
     function actualizar() {
@@ -594,6 +667,7 @@ footer .wrap { border-top: 1px solid var(--line); padding-top: 20px; display: fl
       leyenda(); resumenSemana(); mostrarDetalle();
     }
     actualizar();
+    encuadrar();
   }
 })();
 </script>
