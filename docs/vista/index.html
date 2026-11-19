@@ -91,7 +91,7 @@ p { margin: 0; }
 .mini-mapa path { fill: var(--surface-2); stroke: var(--line); stroke-width: .6; transition: fill .5s; }
 .mini-mapa path.brilla { fill: var(--accent); }
 .reloj { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6cqw; }
-.reloj div { background: var(--surface-2); border-radius: .8cqw; padding: 1.2cqw .6cqw; text-align: center; font-weight: 700; font-size: 1.5cqw; color: var(--text-2); transition: background .4s, color .4s, transform .4s; }
+.reloj div { background: var(--surface-2); border-radius: .8cqw; padding: 1.2cqw .6cqw; text-align: center; font-weight: 700; font-size: 1.6cqw; color: var(--text-2); transition: background .4s, color .4s, transform .4s; }
 .reloj div.on { background: var(--accent); color: #fff; transform: translateY(-.3cqw); }
 .reloj small { display: block; font-weight: 500; font-size: 1cqw; margin-top: .3cqw; opacity: .8; }
 .semana-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: .4cqw; }
@@ -116,7 +116,7 @@ p { margin: 0; }
 .slide.activa .flujo .riel i:nth-child(3) { animation-delay: 1.6s; }
 @keyframes viajar { to { left: 100%; } }
 .etapa { position: relative; text-align: center; }
-.etapa .icono { width: 7.6cqw; height: 7.6cqw; margin: 0 auto; border-radius: 50%; background: var(--surface); border: .25cqw solid var(--accent); display: grid; place-items: center; font-size: 3cqw; position: relative; z-index: 1; }
+.etapa .icono { width: 7.6cqw; height: 7.6cqw; margin: 0 auto; border-radius: 50%; background: var(--surface); border: .25cqw solid var(--accent); display: grid; place-items: center; font-size: 2.8cqw; font-weight: 800; color: var(--accent); position: relative; z-index: 1; }
 .etapa h3 { margin-top: 1.2cqw; }
 .etapa p { font-size: 1.25cqw; color: var(--text-2); margin-top: .4cqw; line-height: 1.4; }
 .herramientas { display: flex; flex-wrap: wrap; justify-content: center; gap: .8cqw; }
@@ -157,7 +157,8 @@ p { margin: 0; }
 .slide.activa .flecha { animation: empujar 1.4s ease-in-out infinite; }
 @keyframes empujar { 50% { transform: translateX(.6cqw); } }
 .caja-modelo { text-align: center; padding: 2.4cqw 1.6cqw; }
-.arbolitos { font-size: 3cqw; letter-spacing: .3cqw; }
+.arbolitos { display: flex; justify-content: center; gap: .6cqw; color: var(--accent); }
+.arbolitos svg { width: 2.6cqw; height: 3cqw; display: block; }
 .slide.activa .arbolitos span { display: inline-block; animation: mecer 2.6s ease-in-out infinite; animation-delay: calc(var(--i) * 200ms); }
 @keyframes mecer { 50% { transform: rotate(-6deg) translateY(-.2cqw); } }
 
@@ -173,7 +174,7 @@ p { margin: 0; }
 
 /* Conclusiones */
 .lecciones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2cqw; }
-.leccion .emoji { font-size: 3.6cqw; }
+.leccion .emoji { width: 4.2cqw; height: 4.2cqw; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 800; font-size: 1.9cqw; }
 .leccion h3 { margin: 1cqw 0 .8cqw; font-size: 1.9cqw; line-height: 1.2; }
 .leccion p { font-size: 1.4cqw; color: var(--text-2); line-height: 1.45; }
 
@@ -254,7 +255,7 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
       <div style="display:grid; gap:1.6cqw">
         <div class="mini-mapa a-zoom" style="--i:2; height: 22cqw" id="mapa-zonas" aria-hidden="true"></div>
         <div class="reloj a" style="--i:3" id="reloj">
-          <div>🌙<small>00 a 06</small></div><div>🌅<small>06 a 12</small></div><div>☀️<small>12 a 18</small></div><div>🌆<small>18 a 24</small></div>
+          <div>00–06<small>madrugada</small></div><div>06–12<small>mañana</small></div><div>12–18<small>tarde</small></div><div>18–24<small>noche</small></div>
         </div>
       </div>
     </div>
@@ -279,11 +280,11 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
     <h2 class="a" style="--i:1">De un archivo enorme a una predicción, en cinco pasos</h2>
     <div class="flujo" style="margin-top:1.5cqw">
       <div class="riel"><i></i><i></i><i></i></div>
-      <div class="etapa a" style="--i:2"><div class="icono">📥</div><h3>Guardar</h3><p>Bajamos los datos de cada año a un clúster en la nube.</p></div>
-      <div class="etapa a" style="--i:3"><div class="icono">🧹</div><h3>Limpiar</h3><p>Quitamos errores, duplicados y puntos fuera de Chicago.</p></div>
-      <div class="etapa a" style="--i:4"><div class="icono">🗂️</div><h3>Organizar</h3><p>Contamos los delitos de cada zona, turno y semana.</p></div>
-      <div class="etapa a" style="--i:5"><div class="icono">🤖</div><h3>Aprender</h3><p>Entrenamos modelos con las semanas pasadas.</p></div>
-      <div class="etapa a" style="--i:6"><div class="icono">📊</div><h3>Mostrar</h3><p>Gráficas y esta presentación.</p></div>
+      <div class="etapa a" style="--i:2"><div class="icono">1</div><h3>Guardar</h3><p>Bajamos los datos de cada año a un clúster en la nube.</p></div>
+      <div class="etapa a" style="--i:3"><div class="icono">2</div><h3>Limpiar</h3><p>Quitamos errores, duplicados y puntos fuera de Chicago.</p></div>
+      <div class="etapa a" style="--i:4"><div class="icono">3</div><h3>Organizar</h3><p>Contamos los delitos de cada zona, turno y semana.</p></div>
+      <div class="etapa a" style="--i:5"><div class="icono">4</div><h3>Aprender</h3><p>Entrenamos modelos con las semanas pasadas.</p></div>
+      <div class="etapa a" style="--i:6"><div class="icono">5</div><h3>Mostrar</h3><p>Gráficas y esta presentación.</p></div>
     </div>
     <div class="herramientas a" style="--i:7; margin-top:auto">
       <span>AWS</span><span>Hadoop</span><span>Spark</span><span>Hive</span><span>Python</span><span>Terraform</span>
@@ -312,9 +313,9 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
     <div class="cuerpo" style="grid-template-columns: 1.6fr 1fr; align-items:center">
       <div class="figura a-zoom" style="--i:2; height: 30cqw"><img src="img/C_p2_dia_hora_2025.png" alt="Mapa de calor de delitos por día y hora"></div>
       <div style="display:grid; gap:2cqw">
-        <p class="texto paso">🕒 Entre semana, el pico es <b>de 3 a 7 de la tarde</b>.</p>
-        <p class="texto paso">🌙 El fin de semana sube la <b>madrugada</b>.</p>
-        <p class="texto paso">📈 <b>6 de cada 10</b> delitos pasan entre el mediodía y la medianoche.</p>
+        <p class="texto paso">Entre semana, el pico es <b>de 3 a 7 de la tarde</b>.</p>
+        <p class="texto paso">El fin de semana sube la <b>madrugada</b>.</p>
+        <p class="texto paso"><b>6 de cada 10</b> delitos pasan entre el mediodía y la medianoche.</p>
       </div>
     </div>
     <div class="paso-pista">clic para seguir ›</div>
@@ -338,7 +339,7 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
     <div class="kicker a" style="--i:0">¿Cambia en el año?</div>
     <h2 class="a" style="--i:1">En verano hay más delitos, y 2025 fue un año más tranquilo</h2>
     <div class="figura a-zoom" style="--i:2; flex:1"><img src="img/C_p4_serie_semanal_2022_2025.png" alt="Delitos por semana de 2022 a 2025"></div>
-    <p class="texto paso">☀️ En verano hay <b>9 % más</b>. Y como 2023 y 2024 fueron más altos, <b>lo reciente pesa más que lo de hace años</b>.</p>
+    <p class="texto paso">En verano hay <b>9 % más</b>. Y como 2023 y 2024 fueron más altos, <b>lo reciente pesa más que lo de hace años</b>.</p>
     <div class="paso-pista">clic para seguir ›</div>
   </section>
 
@@ -348,14 +349,14 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
     <h2 class="a" style="--i:1">El modelo aprende de lo que pasó antes</h2>
     <div class="diagrama" style="flex:1">
       <div class="entradas">
-        <div class="tarjeta paso">📅 Cuántos delitos hubo las <b>semanas anteriores</b></div>
-        <div class="tarjeta paso">📍 En qué <b>zona</b> y qué <b>turno</b></div>
-        <div class="tarjeta paso">🗓️ Qué <b>época del año</b> es</div>
-        <div class="tarjeta paso">🏘️ Qué pasó en las <b>zonas vecinas</b></div>
+        <div class="tarjeta paso">Cuántos delitos hubo las <b>semanas anteriores</b></div>
+        <div class="tarjeta paso">En qué <b>zona</b> y qué <b>turno</b></div>
+        <div class="tarjeta paso">Qué <b>época del año</b> es</div>
+        <div class="tarjeta paso">Qué pasó en las <b>zonas vecinas</b></div>
       </div>
       <div class="flecha a" style="--i:3">→</div>
       <div class="tarjeta caja-modelo a-zoom" style="--i:4">
-        <div class="arbolitos"><span style="--i:0">🌳</span><span style="--i:1">🌲</span><span style="--i:2">🌳</span><span style="--i:3">🌲</span></div>
+        <div class="arbolitos" aria-hidden="true"><span style="--i:0"><svg viewBox="0 0 24 28"><path d="M12 2 L21 16 H3 Z M12 9 L22 23 H2 Z" fill="currentColor" opacity=".85"/><rect x="10.5" y="23" width="3" height="5" fill="currentColor"/></svg></span><span style="--i:1"><svg viewBox="0 0 24 28"><path d="M12 2 L21 16 H3 Z M12 9 L22 23 H2 Z" fill="currentColor" opacity=".85"/><rect x="10.5" y="23" width="3" height="5" fill="currentColor"/></svg></span><span style="--i:2"><svg viewBox="0 0 24 28"><path d="M12 2 L21 16 H3 Z M12 9 L22 23 H2 Z" fill="currentColor" opacity=".85"/><rect x="10.5" y="23" width="3" height="5" fill="currentColor"/></svg></span><span style="--i:3"><svg viewBox="0 0 24 28"><path d="M12 2 L21 16 H3 Z M12 9 L22 23 H2 Z" fill="currentColor" opacity=".85"/><rect x="10.5" y="23" width="3" height="5" fill="currentColor"/></svg></span></div>
         <h3 style="margin-top:1cqw">Random Forest</h3>
         <p class="chico" style="margin-top:.6cqw">Cientos de árboles de decisión que "votan" un número</p>
       </div>
@@ -364,7 +365,7 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
         <p class="chico">Zona 1834, de 12 a 18 h, semana del 19 nov</p>
         <div class="numero acento" style="margin:.6cqw 0">≈ 21</div>
         <p class="chico">delitos esperados</p>
-        <p class="texto paso" style="margin-top:.8cqw">…y hubo <b>21</b> ✅</p>
+        <p class="texto paso" style="margin-top:.8cqw">…y hubo <b>21</b></p>
       </div>
     </div>
     <div class="paso-pista">clic para seguir ›</div>
@@ -381,7 +382,7 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
       <div class="corredor gana" data-v="1.585"><span class="nombre">Nuestro modelo mejorado</span><div class="pista"><div class="ficha"></div><span class="etq">1.59</span></div></div>
       <div class="eje-carrera"><div></div><div><span>← más error</span><span>menos error →</span></div></div>
     </div>
-    <p class="texto paso" style="margin-top:auto">🏁 El modelo mejorado gana, pero por poco: <b>repetir lo que pasó hace poco ya funciona muy bien</b>. Para ganarle tuvimos que darle 4 años de datos y pistas nuevas (vecinos, época del año, festivos).</p>
+    <p class="texto paso" style="margin-top:auto">El modelo mejorado gana, pero por poco: <b>repetir lo que pasó hace poco ya funciona muy bien</b>. Para ganarle tuvimos que darle 4 años de datos y pistas nuevas (vecinos, época del año, festivos).</p>
     <div class="paso-pista">clic para seguir ›</div>
   </section>
 
@@ -451,7 +452,7 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
     <div class="cuerpo" style="grid-template-columns: 1fr 1.2fr; align-items:center">
       <div style="display:grid; gap:2cqw">
         <div class="paso"><div class="numerazo">3 de 10</div><p class="texto" style="margin-top:.6cqw">veces acertamos el tipo de un delito <b>suelto</b>. Ningún modelo lo hace mejor que fijarse en lo más común de esa zona.</p></div>
-        <p class="texto paso">🎯 Pero la <b>mezcla</b> de cada zona sí se anticipa bien. Eso le dice a la policía qué tipo de patrulla mandar.</p>
+        <p class="texto paso">Pero la <b>mezcla</b> de cada zona sí se anticipa bien. Eso le dice a la policía qué tipo de patrulla mandar.</p>
       </div>
       <div class="tarjeta a" style="--i:2">
         <p class="chico" style="margin-bottom:1cqw">Zona 1834, de 12 a 18 h, últimas 10 semanas de 2025</p>
@@ -473,17 +474,16 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
     <div class="kicker a" style="--i:0">En resumen</div>
     <h2 class="a" style="--i:1">Tres cosas que aprendimos</h2>
     <div class="lecciones" style="margin-top:1.4cqw">
-      <div class="tarjeta leccion paso"><div class="emoji">🔁</div><h3>Lo reciente predice más</h3><p>Lo que pasó en una zona las últimas semanas es la mejor pista. Ganarle a esa regla simple fue lo más difícil.</p></div>
-      <div class="tarjeta leccion paso"><div class="emoji">🚓</div><h3>Sí ayuda a patrullar</h3><p>Vigilando el 10 % de las zonas que dice el modelo se cubre el doble de delitos que eligiendo al azar.</p></div>
-      <div class="tarjeta leccion paso"><div class="emoji">🎯</div><h3>Hay un límite</h3><p>Parte del delito es azar. Ni sabiendo el futuro se cubriría más del 26 % con el 10 % de las zonas.</p></div>
+      <div class="tarjeta leccion paso"><div class="emoji">1</div><h3>Lo reciente predice más</h3><p>Lo que pasó en una zona las últimas semanas es la mejor pista. Ganarle a esa regla simple fue lo más difícil.</p></div>
+      <div class="tarjeta leccion paso"><div class="emoji">2</div><h3>Sí ayuda a patrullar</h3><p>Vigilando el 10 % de las zonas que dice el modelo se cubre el doble de delitos que eligiendo al azar.</p></div>
+      <div class="tarjeta leccion paso"><div class="emoji">3</div><h3>Hay un límite</h3><p>Parte del delito es azar. Ni sabiendo el futuro se cubriría más del 26 % con el 10 % de las zonas.</p></div>
     </div>
     <div class="paso-pista">clic para seguir ›</div>
   </section>
 
   <!-- 15 · Gracias -->
   <section class="slide portada" data-titulo="Gracias">
-    <div class="kicker a" style="--i:0">Gracias</div>
-    <h1 class="a" style="--i:1">¿Preguntas?</h1>
+    <h1 class="a" style="--i:0">Gracias</h1>
     <p class="grande a" style="--i:2">Lo que seguiría: usar el pronóstico del clima, zonas más chicas y que el modelo se actualice solo cada semana.</p>
     <p class="texto a" style="--i:3">Código y documentación: <a href="https://github.com/valentinodepaola/proyecto-integrador-big-data">github.com/valentinodepaola/proyecto-integrador-big-data</a></p>
     <p class="chico a" style="--i:4">Datos: <a href="https://data.cityofchicago.org/">Chicago Data Portal</a></p>
