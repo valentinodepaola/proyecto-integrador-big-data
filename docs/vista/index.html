@@ -159,6 +159,8 @@ p { margin: 0; }
 .slide.activa .flecha { animation: empujar 1.4s ease-in-out infinite; }
 @keyframes empujar { 50% { transform: translateX(.6cqw); } }
 .caja-modelo { text-align: center; padding: 2.4cqw 1.6cqw; }
+.col-etq { font-size: 1cqw; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); margin-bottom: .8cqw; text-align: center; }
+.diagrama .nota { font-size: 1.05cqw; color: var(--text-3); line-height: 1.4; margin-top: 1cqw; border-top: 1px solid var(--line); padding-top: .8cqw; }
 .arbolitos { display: flex; justify-content: center; gap: .6cqw; color: var(--accent); }
 .arbolitos svg { width: 2.6cqw; height: 3cqw; display: block; }
 .slide.activa .arbolitos span { display: inline-block; animation: mecer 2.6s ease-in-out infinite; animation-delay: calc(var(--i) * 200ms); }
@@ -166,7 +168,10 @@ p { margin: 0; }
 
 /* Mezcla de tipos */
 .mezcla { display: grid; gap: .9cqw; }
-.mezcla .fila { display: grid; grid-template-columns: 14cqw 1fr; gap: 1cqw; align-items: center; font-size: 1.3cqw; }
+.mezcla .fila { display: grid; grid-template-columns: 14cqw 1fr 4.5cqw; gap: 1cqw; align-items: center; font-size: 1.3cqw; }
+.mezcla .nums { display: grid; gap: .3cqw; font-size: 1cqw; line-height: 1.2cqw; font-variant-numeric: tabular-nums; text-align: right; }
+.mezcla .nums .n-pred { color: var(--accent); font-weight: 700; }
+.mezcla .nums .n-real { color: var(--text-2); }
 .mezcla .par { display: grid; gap: .3cqw; }
 .mezcla .par div { height: 1.2cqw; border-radius: .3cqw; width: 0; transition: width 1s cubic-bezier(.2,.7,.2,1); }
 .mezcla .pred { background: var(--accent); }
@@ -355,23 +360,32 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
     <h2 class="a" style="--i:1">El modelo aprende de lo que pasó antes</h2>
     <div class="diagrama" style="flex:1">
       <div class="entradas">
+        <div class="col-etq a" style="--i:2; margin-bottom:0">1 · Lo que le damos</div>
         <div class="tarjeta paso">Cuántos delitos hubo las <b>semanas anteriores</b></div>
         <div class="tarjeta paso">En qué <b>zona</b> y qué <b>turno</b></div>
         <div class="tarjeta paso">Qué <b>época del año</b> es</div>
         <div class="tarjeta paso">Qué pasó en las <b>zonas vecinas</b></div>
       </div>
       <div class="flecha a" style="--i:3">→</div>
-      <div class="tarjeta caja-modelo a-zoom" style="--i:4">
+      <div class="a-zoom" style="--i:4">
+      <div class="col-etq">2 · Cómo decide</div>
+      <div class="tarjeta caja-modelo">
         <div class="arbolitos" aria-hidden="true"><span style="--i:0"><svg viewBox="0 0 24 28"><path d="M12 2 L21 16 H3 Z M12 9 L22 23 H2 Z" fill="currentColor" opacity=".85"/><rect x="10.5" y="23" width="3" height="5" fill="currentColor"/></svg></span><span style="--i:1"><svg viewBox="0 0 24 28"><path d="M12 2 L21 16 H3 Z M12 9 L22 23 H2 Z" fill="currentColor" opacity=".85"/><rect x="10.5" y="23" width="3" height="5" fill="currentColor"/></svg></span><span style="--i:2"><svg viewBox="0 0 24 28"><path d="M12 2 L21 16 H3 Z M12 9 L22 23 H2 Z" fill="currentColor" opacity=".85"/><rect x="10.5" y="23" width="3" height="5" fill="currentColor"/></svg></span><span style="--i:3"><svg viewBox="0 0 24 28"><path d="M12 2 L21 16 H3 Z M12 9 L22 23 H2 Z" fill="currentColor" opacity=".85"/><rect x="10.5" y="23" width="3" height="5" fill="currentColor"/></svg></span></div>
         <h3 style="margin-top:1cqw">Random Forest</h3>
-        <p class="chico" style="margin-top:.6cqw">Cientos de árboles de decisión que "votan" un número</p>
+        <p class="texto" style="font-size:1.25cqw; margin-top:.6cqw">50 "árboles" que hacen preguntas, como <b>"¿hubo muchos delitos la semana pasada?"</b>, y cada uno da un número.</p>
+        <p class="chico" style="margin-top:.6cqw">El modelo promedia los 50.</p>
+      </div>
       </div>
       <div class="flecha a" style="--i:5">→</div>
-      <div class="tarjeta a-zoom" style="--i:6; text-align:center">
+      <div class="a-zoom" style="--i:6">
+      <div class="col-etq">3 · Lo que nos da</div>
+      <div class="tarjeta" style="text-align:center">
         <p class="chico">Zona 1834, de 12 a 18 h, semana del 19 nov</p>
         <div class="numero acento" style="margin:.6cqw 0">≈ 21</div>
         <p class="chico">delitos esperados</p>
         <p class="texto paso" style="margin-top:.8cqw">…y hubo <b>21</b></p>
+        <p class="nota paso">No siempre atina así: en promedio se equivoca por <b>1 o 2 delitos</b> en cada zona y turno.</p>
+      </div>
       </div>
     </div>
     <div class="paso-pista">clic para seguir ›</div>
@@ -455,22 +469,24 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
   <!-- 13 · Tipo de delito -->
   <section class="slide" data-titulo="Tipo de delito" data-al-entrar="mezcla">
     <div class="kicker a" style="--i:0">¿Y qué tipo de delito?</div>
-    <h2 class="a" style="--i:1">No adivinamos cada delito, pero sí la mezcla de cada zona</h2>
+    <h2 class="a" style="--i:1">No sabemos qué delito exacto viene, pero sí qué tipos van a predominar en cada zona</h2>
     <div class="cuerpo" style="grid-template-columns: 1fr 1.2fr; align-items:center">
-      <div style="display:grid; gap:2cqw">
-        <div class="paso"><div class="numerazo">3 de 10</div><p class="texto" style="margin-top:.6cqw">veces acertamos el tipo de un delito <b>suelto</b>. Ningún modelo lo hace mejor que fijarse en lo más común de esa zona.</p></div>
-        <p class="texto paso">Pero la <b>mezcla</b> de cada zona sí se anticipa bien. Eso le dice a la policía qué tipo de patrulla mandar.</p>
+      <div style="display:grid; gap:1.4cqw">
+        <div class="paso"><div class="numerazo" style="font-size:5.5cqw">3 de 10</div><p class="texto" style="margin-top:.4cqw">veces acertamos el tipo del <b>próximo delito</b> de una zona. En la misma esquina puede pasar un robo, una pelea o un vandalismo.</p></div>
+        <p class="texto paso">Pero sí sabemos <b>qué tipos van a predominar</b>. En esta zona esperábamos que de cada 100 delitos, 54 fueran robos. Fueron 56.</p>
+        <p class="texto paso">Como una bolsa de dulces surtidos: no sabes cuál te sale, pero sí de qué está hecha. Así la policía sabe <b>qué tipo de patrulla mandar</b>.</p>
       </div>
       <div class="tarjeta a" style="--i:2">
-        <p class="chico" style="margin-bottom:1cqw">Zona 1834, de 12 a 18 h, últimas 10 semanas de 2025</p>
+        <p class="chico" style="margin-bottom:.3cqw">Zona 1834, de 12 a 18 h, últimas 10 semanas de 2025</p>
+        <p class="texto" style="font-size:1.25cqw; margin-bottom:1.2cqw"><b>De cada 100 delitos, ¿cuántos fueron de cada tipo?</b></p>
         <div class="mezcla" id="mezcla">
-          <div class="fila"><span>Robo sin violencia</span><div class="par"><div class="pred" data-ancho="54.4"></div><div class="real" data-ancho="55.7"></div></div></div>
-          <div class="fila"><span>Agresión física</span><div class="par"><div class="pred" data-ancho="9.6"></div><div class="real" data-ancho="10.0"></div></div></div>
-          <div class="fila"><span>Amenaza o ataque</span><div class="par"><div class="pred" data-ancho="4.5"></div><div class="real" data-ancho="5.2"></div></div></div>
-          <div class="fila"><span>Daño a la propiedad</span><div class="par"><div class="pred" data-ancho="3.8"></div><div class="real" data-ancho="1.9"></div></div></div>
-          <div class="fila"><span>Otros</span><div class="par"><div class="pred" data-ancho="27.7"></div><div class="real" data-ancho="27.2"></div></div></div>
+          <div class="fila"><span>Robo sin violencia</span><div class="par"><div class="pred" data-ancho="54.4"></div><div class="real" data-ancho="55.7"></div></div><div class="nums"><span class="n-pred">54</span><span class="n-real">56</span></div></div>
+          <div class="fila"><span>Agresión física</span><div class="par"><div class="pred" data-ancho="9.6"></div><div class="real" data-ancho="10.0"></div></div><div class="nums"><span class="n-pred">10</span><span class="n-real">10</span></div></div>
+          <div class="fila"><span>Amenaza o ataque</span><div class="par"><div class="pred" data-ancho="4.5"></div><div class="real" data-ancho="5.2"></div></div><div class="nums"><span class="n-pred">5</span><span class="n-real">5</span></div></div>
+          <div class="fila"><span>Daño a la propiedad</span><div class="par"><div class="pred" data-ancho="3.8"></div><div class="real" data-ancho="1.9"></div></div><div class="nums"><span class="n-pred">4</span><span class="n-real">2</span></div></div>
+          <div class="fila"><span>Otros</span><div class="par"><div class="pred" data-ancho="27.7"></div><div class="real" data-ancho="27.2"></div></div><div class="nums"><span class="n-pred">28</span><span class="n-real">27</span></div></div>
         </div>
-        <div class="leyenda-mini" style="margin-top:1.2cqw"><span><i style="background:var(--accent)"></i>Lo que esperábamos</span><span><i style="background:var(--gris)"></i>Lo que pasó</span></div>
+        <div class="leyenda-mini" style="margin-top:1.2cqw"><span><i style="background:var(--accent)"></i>Lo que esperábamos (antes)</span><span><i style="background:var(--gris)"></i>Lo que pasó de verdad</span></div>
       </div>
     </div>
     <div class="paso-pista">clic para seguir ›</div>
