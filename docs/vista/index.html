@@ -211,6 +211,17 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
 .leyenda { display: flex; gap: .15cqw; margin-top: .5cqw; }
 .leyenda i { flex: 1; height: .8cqw; border-radius: .15cqw; }
 .leyenda-etiquetas { display: flex; justify-content: space-between; font-size: .9cqw; color: var(--text-3); margin-top: .3cqw; }
+/* Patrullas simuladas: dos luces que se alternan, roja y azul */
+.patrulla { display: flex; gap: 1px; pointer-events: none; }
+.patrulla i, .patrulla-ejemplo i { width: 3px; height: 3px; border-radius: 50%; }
+.patrulla i:first-child, .patrulla-ejemplo i:first-child { background: #ff3b3b; }
+.patrulla i:last-child, .patrulla-ejemplo i:last-child { background: #3b7bff; }
+.patrulla i:first-child { animation: luz-roja .5s steps(1) infinite; }
+.patrulla i:last-child { animation: luz-azul .5s steps(1) infinite; }
+@keyframes luz-roja { 0% { box-shadow: 0 0 3px 1.5px rgba(255,59,59,.9); opacity: 1; } 50% { box-shadow: none; opacity: .35; } }
+@keyframes luz-azul { 0% { box-shadow: none; opacity: .35; } 50% { box-shadow: 0 0 3px 1.5px rgba(59,123,255,.9); opacity: 1; } }
+.patrulla-ejemplo { display: inline-flex; gap: 2px; width: 1.1cqw; justify-content: center; vertical-align: .05cqw; margin-right: .5cqw; }
+@media (prefers-reduced-motion: reduce) { .patrulla i { animation: none !important; } }
 .borde-ejemplo { display: inline-block; width: 1.1cqw; height: .8cqw; border: .18cqw solid var(--accent); border-radius: .15cqw; vertical-align: -.05cqw; margin-right: .5cqw; }
 #barras-captura svg { display: block; width: 100%; height: auto; }
 .leaflet-container { font: 1cqw Inter, system-ui, sans-serif; background: var(--surface); }
@@ -457,6 +468,7 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
           <div class="leyenda" id="leyenda"></div>
           <div class="leyenda-etiquetas" id="leyenda-etiquetas"></div>
           <p class="chico" style="margin-top:.6cqw"><span class="borde-ejemplo"></span><span id="leyenda-borde">zona que el modelo mandaría a vigilar</span></p>
+          <p class="chico" id="leyenda-patrulla" style="margin-top:.3cqw"><span class="patrulla-ejemplo" aria-hidden="true"><i></i><i></i></span>patrulla simulada recorriendo esas zonas</p>
         </div>
         <div>
           <h3 id="detalle-titulo">Zona</h3>
@@ -869,8 +881,63 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
       document.querySelectorAll("#turno button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.turno === estado.turno));
       document.querySelectorAll("#capa button").forEach(b => b.setAttribute("aria-pressed", b.dataset.capa === estado.capa));
       capaBeats.eachLayer(estiloBeat);
-      leyenda(); resumenSemana(); mostrarDetalle();
+      leyenda(); resumenSemana(); mostrarDetalle(); repartirPatrullas();
     }
+
+    // ---------- Patrullas simuladas ----------
+    // Recorren las zonas que el modelo mandaría a vigilar: van a una, se quedan un momento y pasan a otra cercana.
+    // Son ilustrativas: no hay datos de patrullas reales.
+    const N_PATRULLAS = 14, VELOCIDAD = 0.018, ESPERA = [900, 2200];   // grados por segundo, ms en cada zona
+    const iconoPatrulla = L.divIcon({ className: "", html: '<div class="patrulla"><i></i><i></i></div>', iconSize: [7, 3], iconAnchor: [3.5, 1.5] });
+    let destinos = [];   // centros de las zonas marcadas
+    const patrullas = [];
+    const alAzar = arr => arr[Math.floor(Math.random() * arr.length)];
+    const cercanos = p => destinos.map(d => [d, (d.lat - p.lat) ** 2 + (d.lng - p.lng) ** 2])
+      .sort((a, b) => a[1] - b[1]).slice(1, 7).map(([d]) => d);
+
+    function repartirPatrullas() {
+      destinos = [];
+      capaBeats.eachLayer(c => { const v = valores(c.feature.properties.beat); if (v && v.senaladas > 0) destinos.push(c.getBounds().getCenter()); });
+      // En "Diferencia" el mapa habla del error, no de a dónde ir: ahí no hay patrullas
+      const conPatrullas = estado.capa !== "error";
+      document.getElementById("leyenda-patrulla").hidden = !conPatrullas;
+      const n = conPatrullas ? Math.min(N_PATRULLAS, destinos.length) : 0;
+      while (patrullas.length > n) mapa.removeLayer(patrullas.pop().marca);
+      while (patrullas.length < n) {
+        const pos = alAzar(destinos);
+        patrullas.push({ pos, destino: pos, esperaHasta: 0,
+          marca: L.marker(pos, { icon: iconoPatrulla, interactive: false, keyboard: false }).addTo(mapa) });
+      }
+      // Cada patrulla se dirige a una zona marcada de la nueva selección
+      patrullas.forEach(p => {
+        p.destino = alAzar(destinos);
+        p.esperaHasta = 0;
+        if (sinMovimiento) { p.pos = p.destino; p.marca.setLatLng(p.pos); }
+      });
+    }
+
+    let ultimo = performance.now();
+    function moverPatrullas(t) {
+      const dt = Math.min(0.1, (t - ultimo) / 1000);
+      ultimo = t;
+      if (!sinMovimiento && destinos.length && document.getElementById("mapa").getBoundingClientRect().width) {
+        for (const p of patrullas) {
+          if (t < p.esperaHasta) continue;
+          const dLat = p.destino.lat - p.pos.lat, dLng = p.destino.lng - p.pos.lng, dist = Math.hypot(dLat, dLng);
+          const paso = VELOCIDAD * dt;
+          if (dist <= paso) {
+            p.pos = p.destino;
+            p.esperaHasta = t + ESPERA[0] + Math.random() * (ESPERA[1] - ESPERA[0]);
+            p.destino = alAzar(cercanos(p.pos).length ? cercanos(p.pos) : destinos);
+          } else {
+            p.pos = L.latLng(p.pos.lat + dLat / dist * paso, p.pos.lng + dLng / dist * paso);
+          }
+          p.marca.setLatLng(p.pos);
+        }
+      }
+      requestAnimationFrame(moverPatrullas);
+    }
+    requestAnimationFrame(moverPatrullas);
     actualizar();
     encuadrar();
   }
