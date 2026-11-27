@@ -247,6 +247,157 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
   .mapa-portada path { stroke-dashoffset: 0 !important; }
   .paso, .barra-fila .relleno, .corredor .ficha, .corredor .etq, .mezcla .par div { transition: none !important; }
 }
+
+/* ---------- Teléfono: las diapositivas se vuelven secciones con scroll ----------
+   El JS pone .modo-scroll en <html> cuando la pantalla es de teléfono. Como en la
+   computadora todo se mide en cqw (relativo a la diapositiva), aquí se pasa a px. */
+.solo-cel { display: none; }
+.progreso-scroll { display: none; }
+html.modo-scroll, html.modo-scroll body { height: auto; }
+html.modo-scroll body { overflow: auto; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+.modo-scroll .solo-cel { display: inline; }
+.modo-scroll .solo-compu { display: none; }
+.modo-scroll .barra, .modo-scroll .ayuda, .modo-scroll .paso-pista { display: none; }
+.modo-scroll .progreso-scroll { display: block; position: fixed; top: 0; left: 0; height: 3px; width: 0; background: var(--accent); z-index: 1000; }
+.modo-scroll .escenario { position: static; display: block; }
+.modo-scroll .deck { width: auto; aspect-ratio: auto; container-type: normal; border-radius: 0; box-shadow: none; overflow: visible; background: var(--slide); }
+.modo-scroll .slide { position: relative; display: flex; inset: auto; padding: 56px 20px 48px; gap: 16px; border-top: 1px solid var(--line); }
+.modo-scroll .slide:first-child { border-top: 0; padding-top: 28px; min-height: 100svh; justify-content: flex-start; }
+.modo-scroll .slide.mapa-slide { padding: 56px 16px 40px; gap: 16px; }
+/* Antes de verse, lo animado espera escondido (en la computadora lo hace .activa) */
+.modo-scroll .slide:not(.activa) .a, .modo-scroll .slide:not(.activa) .a-zoom { opacity: 0; }
+.modo-scroll .slide.activa .a { animation-name: subir-cel; }
+@keyframes subir-cel { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.modo-scroll .paso { transform: translateY(10px); }
+.modo-scroll .paso.visible { transform: none; }
+
+.modo-scroll .kicker { font-size: 12px; }
+.modo-scroll h1 { font-size: clamp(32px, 9.5vw, 44px); }
+.modo-scroll h2 { font-size: clamp(25px, 7vw, 32px); max-width: none; }
+.modo-scroll h3 { font-size: 18px; }
+.modo-scroll .grande { font-size: 18px; max-width: none !important; }
+.modo-scroll .texto { font-size: 16px !important; }
+.modo-scroll .chico { font-size: 13px; }
+.modo-scroll .numerazo { font-size: 60px !important; }
+.modo-scroll .numero { font-size: 38px; }
+.modo-scroll .cuerpo { grid-template-columns: 1fr !important; gap: 20px; flex: none; }
+.modo-scroll .tarjeta { border-radius: 14px; padding: 16px; }
+.modo-scroll .figura { height: auto !important; flex: none !important; border-radius: 12px; padding: 8px; }
+.modo-scroll .figura img { position: static; width: 100%; height: auto; display: block; }
+.modo-scroll .slide[data-titulo="¿Dónde?"] .figura { order: 2; }
+
+/* Portada */
+.modo-scroll .portada h1 { max-width: none; }
+.modo-scroll .mapa-portada { position: relative; inset: auto; width: 100%; height: 42svh; margin-bottom: 8px; }
+
+/* El problema */
+.modo-scroll .lista-pasos { gap: 14px; }
+.modo-scroll .lista-pasos .item { grid-template-columns: 40px 1fr; gap: 14px; }
+.modo-scroll .lista-pasos .bolita { width: 40px; height: 40px; font-size: 18px; }
+.modo-scroll .mini-mapa { height: 230px !important; }
+.modo-scroll .reloj { gap: 6px; }
+.modo-scroll .reloj div { font-size: 15px; padding: 10px 2px; border-radius: 10px; }
+.modo-scroll .reloj div.on { transform: translateY(-3px); }
+.modo-scroll .reloj small { font-size: 11px; margin-top: 3px; }
+
+/* Los datos */
+.modo-scroll .cifras { grid-template-columns: 1fr; gap: 12px; margin-top: 4px !important; }
+.modo-scroll .cifra p { font-size: 15px; margin-top: 6px; }
+
+/* Cómo lo procesamos: el flujo se vuelve vertical */
+.modo-scroll .flujo { grid-template-columns: 1fr; gap: 18px; padding-top: 4px; margin-top: 4px !important; }
+.modo-scroll .flujo .riel { left: 25px; right: auto; top: 26px; bottom: 26px; width: 3px; height: auto; }
+.modo-scroll .flujo .riel i { left: 0; top: -15%; width: 100%; height: 15%; background: linear-gradient(180deg, transparent, var(--accent), transparent); }
+.modo-scroll .slide.activa .flujo .riel i { animation-name: viajar-abajo; }
+@keyframes viajar-abajo { to { top: 100%; } }
+.modo-scroll .etapa { display: grid; grid-template-columns: 52px 1fr; column-gap: 14px; text-align: left; align-items: center; }
+.modo-scroll .etapa .icono { width: 52px; height: 52px; font-size: 22px; border-width: 2px; margin: 0; grid-row: span 2; }
+.modo-scroll .etapa h3 { margin: 0; }
+.modo-scroll .etapa p { font-size: 14px; margin: 2px 0 0; }
+.modo-scroll .herramientas { gap: 8px; justify-content: flex-start; margin-top: 8px !important; }
+.modo-scroll .herramientas span { font-size: 13px; padding: 5px 12px; border-radius: 20px; }
+
+/* Barras (tipos y simulador): nombre y valor arriba, barra abajo */
+.modo-scroll .barras { gap: 14px; margin-top: 4px !important; }
+.modo-scroll .barra-fila { grid-template-columns: 1fr auto; grid-template-areas: "nombre valor" "pista pista"; gap: 6px 10px; font-size: 15px; }
+.modo-scroll .barra-fila .nombre { grid-area: nombre; text-align: left; }
+.modo-scroll .barra-fila .valor { grid-area: valor; }
+.modo-scroll .barra-fila .pista { grid-area: pista; height: 22px; border-radius: 6px; }
+.modo-scroll .barra-fila .relleno { border-radius: 6px; }
+
+/* Qué tan bien: la carrera */
+.modo-scroll .carrera { gap: 12px; margin-top: 4px !important; }
+.modo-scroll .corredor { grid-template-columns: 1fr; gap: 2px; }
+.modo-scroll .corredor .nombre { font-size: 14px; text-align: left; }
+.modo-scroll .corredor .pista { height: 28px; margin: 0 52px 0 10px; }
+.modo-scroll .corredor .ficha { width: 14px; height: 14px; }
+.modo-scroll .corredor.gana .ficha { width: 18px; height: 18px; box-shadow: 0 0 0 5px var(--accent-soft); }
+.modo-scroll .corredor.limite .ficha { width: 16px; height: 16px; border-width: 2px; }
+.modo-scroll .corredor .etq { font-size: 13px; transform: translate(14px, -50%); }
+.modo-scroll .eje-carrera { grid-template-columns: 1fr; font-size: 12px; margin-right: 52px; }
+.modo-scroll .eje-carrera div:first-child { display: none; }
+
+/* Simulador */
+.modo-scroll .simulador input[type=range] { height: 32px; margin-top: 8px; }
+.modo-scroll .sim-cabeza { gap: 4px 10px; }
+
+/* Cómo predecimos: el diagrama se apila y las flechas apuntan hacia abajo */
+.modo-scroll .diagrama { grid-template-columns: 1fr; gap: 10px; flex: none !important; }
+.modo-scroll .entradas { gap: 8px; }
+.modo-scroll .entradas .tarjeta { padding: 12px 14px; font-size: 15px; }
+.modo-scroll .flecha { font-size: 28px; text-align: center; transform: rotate(90deg); }
+.modo-scroll .slide.activa .flecha { animation-name: empujar-abajo; }
+@keyframes empujar-abajo { 0%, 100% { transform: rotate(90deg); } 50% { transform: rotate(90deg) translateX(6px); } }
+.modo-scroll .caja-modelo { padding: 20px 16px; }
+.modo-scroll .caja-modelo h3 { margin-top: 10px !important; }
+.modo-scroll .caja-modelo .texto { font-size: 15px !important; margin-top: 6px !important; }
+.modo-scroll .col-etq { font-size: 11px; margin-bottom: 8px !important; }
+.modo-scroll .diagrama .nota { font-size: 13px; margin-top: 10px; padding-top: 8px; }
+.modo-scroll .arbolitos { gap: 6px; }
+.modo-scroll .arbolitos svg { width: 24px; height: 28px; }
+.modo-scroll .numero.acento { margin: 6px 0 !important; }
+
+/* Tipo de delito */
+.modo-scroll .mezcla { gap: 10px; }
+.modo-scroll .mezcla .fila { grid-template-columns: 108px 1fr 28px; gap: 8px; font-size: 13px; }
+.modo-scroll .mezcla .nums { font-size: 12px; line-height: 12px; gap: 3px; }
+.modo-scroll .mezcla .par { gap: 3px; }
+.modo-scroll .mezcla .par div { height: 12px; border-radius: 3px; }
+.modo-scroll .leyenda-mini { flex-wrap: wrap; gap: 6px 16px; font-size: 12px; margin-top: 14px !important; }
+.modo-scroll .leyenda-mini i { width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -2px; }
+.modo-scroll .slide[data-titulo="Tipo de delito"] .tarjeta .chico { margin-bottom: 4px !important; }
+.modo-scroll .slide[data-titulo="Tipo de delito"] .tarjeta .texto { margin-bottom: 12px !important; }
+
+/* Lo que aprendimos y cierre */
+.modo-scroll .lecciones { grid-template-columns: 1fr; gap: 12px; margin-top: 4px !important; }
+.modo-scroll .leccion .emoji { width: 40px; height: 40px; font-size: 18px; }
+.modo-scroll .leccion h3 { margin: 10px 0 6px; font-size: 19px; }
+.modo-scroll .leccion p { font-size: 15px; }
+.modo-scroll .siguientes { gap: 10px; max-width: none; }
+.modo-scroll .siguientes li { font-size: 16px; padding-left: 20px; }
+.modo-scroll .siguientes li::before { top: 8px; width: 8px; height: 8px; }
+.modo-scroll .slide:last-child { padding-bottom: 72px; }
+.modo-scroll .slide:last-child a { word-break: break-word; }
+
+/* Mapa en vivo */
+.modo-scroll .mapa-slide h2 { font-size: clamp(25px, 7vw, 32px); }
+.modo-scroll .controles { flex-direction: column; align-items: stretch; gap: 12px; width: 100%; }
+.modo-scroll .control label { font-size: 11px; margin-bottom: 5px; }
+.modo-scroll .segmentado { display: flex; width: 100%; border-radius: 10px; padding: 3px; gap: 2px; }
+.modo-scroll .segmentado button { flex: 1; font-size: 13px; padding: 10px 2px; border-radius: 8px; }
+.modo-scroll select { width: 100%; font-size: 15px; padding: 10px 12px; border-radius: 10px; }
+.modo-scroll .mapa-grid { grid-template-columns: 1fr; gap: 14px; flex: none; }
+.modo-scroll #mapa { height: 62svh; min-height: 340px; border-radius: 12px; }
+.modo-scroll .lado { padding: 16px; gap: 18px; }
+.modo-scroll .lado h3 { font-size: 15px; }
+.modo-scroll .metrica { font-size: 38px; }
+.modo-scroll .fila-dato { font-size: 14px; padding: 6px 0; }
+.modo-scroll .leyenda { gap: 2px; margin-top: 6px; }
+.modo-scroll .leyenda i { height: 10px; border-radius: 2px; }
+.modo-scroll .leyenda-etiquetas { font-size: 12px; margin-top: 4px; }
+.modo-scroll .borde-ejemplo { width: 14px; height: 10px; border-width: 2px; margin-right: 6px; }
+.modo-scroll .patrulla-ejemplo { width: 14px; margin-right: 6px; }
+.modo-scroll .leaflet-container { font-size: 12px; }
 </style>
 </head>
 <body>
@@ -472,7 +623,7 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
         </div>
         <div>
           <h3 id="detalle-titulo">Zona</h3>
-          <div id="detalle"><p class="chico">Pasa el mouse sobre una zona para ver sus números.</p></div>
+          <div id="detalle"><p class="chico"><span class="solo-compu">Pasa el mouse sobre</span><span class="solo-cel">Toca</span> una zona para ver sus números.</p></div>
         </div>
       </aside>
     </div>
@@ -540,6 +691,7 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
   <div class="progreso" id="progreso"></div>
 </nav>
 <div class="ayuda">← → o clic para avanzar · F pantalla completa</div>
+<div class="progreso-scroll" id="progreso-scroll" aria-hidden="true"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <!-- Los datos van como scripts (no con fetch) para que también funcione abriendo el archivo con doble clic -->
@@ -556,6 +708,9 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
   // ---------- Navegación con pasos ----------
   const slides = [...document.querySelectorAll(".slide")];
   let actual = 0;
+  // En teléfono las diapositivas se leen con scroll (ver aplicarModo más abajo)
+  const mqTelefono = matchMedia("(max-width: 760px), (max-height: 500px) and (pointer: coarse)");
+  let modoScroll = false, observador = null, alCambiarModoMapa = () => {};
   const pasos = s => [...s.querySelectorAll(".paso")];
   const pendientes = s => pasos(s).filter(p => !p.classList.contains("visible"));
   function marcarPendientes() {
@@ -576,11 +731,13 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
     if (mostrarTodo) pasos(slides[actual]).forEach(alMostrarPaso);
   }
   function adelante() {
+    if (modoScroll) return;
     const p = pendientes(slides[actual])[0];
     if (p) { p.classList.add("visible"); alMostrarPaso(p); marcarPendientes(); }
     else if (actual < slides.length - 1) ir(actual + 1);
   }
   function atras() {
+    if (modoScroll) return;
     const vistos = pasos(slides[actual]).filter(p => p.classList.contains("visible"));
     if (vistos.length) { vistos.at(-1).classList.remove("visible"); marcarPendientes(); }
     else if (actual > 0) ir(actual - 1, true);
@@ -590,6 +747,7 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
   const pantallaCompleta = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
   document.getElementById("completa").addEventListener("click", pantallaCompleta);
   document.addEventListener("keydown", e => {
+    if (modoScroll) return;
     if (e.target.closest("select, input, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
     if (["ArrowRight", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); adelante(); }
     else if (["ArrowLeft", "PageUp"].includes(e.key)) { e.preventDefault(); atras(); }
@@ -727,10 +885,54 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
   }
   document.getElementById("sim-rango").addEventListener("input", e => simular(+e.target.value, false));
 
-  ir((parseInt(location.hash.slice(1)) || 1) - 1, true);
+  // ---------- Modo teléfono: secciones con scroll ----------
+  // Cada diapositiva se anima al entrar en pantalla, con sus pasos ya visibles.
+  function entrarConScroll(s) {
+    actual = slides.indexOf(s);
+    if (!s.classList.contains("activa")) {
+      s.classList.add("activa");
+      pasos(s).forEach((p, i) => {
+        p.style.transitionDelay = sinMovimiento ? "0ms" : `${300 + i * 160}ms`;
+        p.classList.add("visible");
+        alMostrarPaso(p);
+      });
+    }
+    alEntrar(s);
+    history.replaceState(null, "", `#${actual + 1}`);
+  }
+  function aplicarModo() {
+    modoScroll = mqTelefono.matches;
+    document.documentElement.classList.toggle("modo-scroll", modoScroll);
+    observador?.disconnect(); observador = null;
+    if (modoScroll) {
+      const inicio = actual;
+      slides.forEach(s => { s.classList.remove("activa", "con-pasos-pendientes"); s.removeAttribute("aria-hidden"); });
+      document.querySelectorAll(".paso").forEach(p => p.classList.remove("visible"));
+      document.title = "Delitos en Chicago";
+      observador = new IntersectionObserver(entradas => entradas.forEach(e => { if (e.isIntersecting) entrarConScroll(e.target); }),
+        { rootMargin: "0px 0px -30% 0px" });
+      slides.forEach(s => observador.observe(s));
+      if (inicio > 0) requestAnimationFrame(() => slides[inicio].scrollIntoView());
+    } else {
+      document.querySelectorAll(".paso").forEach(p => p.style.transitionDelay = "");
+      ir(actual, true);
+    }
+    alCambiarModoMapa(modoScroll);
+  }
+  addEventListener("scroll", () => {
+    if (!modoScroll) return;
+    const max = document.documentElement.scrollHeight - innerHeight;
+    document.getElementById("progreso-scroll").style.width = `${max > 0 ? scrollY / max * 100 : 0}%`;
+  }, { passive: true });
+  mqTelefono.addEventListener("change", aplicarModo);
+
+  actual = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1)) || 1) - 1));
+  aplicarModo();
   addEventListener("hashchange", () => {
     const n = (parseInt(location.hash.slice(1)) || 1) - 1;
-    if (n !== actual) ir(n, true);
+    if (n === actual || !slides[n]) return;
+    if (modoScroll) slides[n].scrollIntoView({ behavior: "smooth" });
+    else ir(n, true);
   });
 
   // ---------- Mapa en vivo ----------
@@ -819,11 +1021,15 @@ select { font: 500 1.1cqw Inter, system-ui, sans-serif; color: var(--text); back
       },
     }).addTo(mapa);
     const encuadrar = () => {
-      if (!document.getElementById("mapa").getBoundingClientRect().width) return;   // la diapositiva está oculta
+      const caja = document.getElementById("mapa").getBoundingClientRect();
+      if (!caja.width || !caja.height) return;   // la diapositiva está oculta (con tamaño cero, fitBounds da NaN)
       mapa.invalidateSize();
       mapa.fitBounds(capaBeats.getBounds(), { padding: [10, 10] });
     };
     new ResizeObserver(encuadrar).observe(document.getElementById("mapa"));
+    // En teléfono, arrastrar con un dedo mueve la página, no el mapa (se acerca con dos dedos o con + y −)
+    alCambiarModoMapa = enTelefono => enTelefono ? mapa.dragging.disable() : mapa.dragging.enable();
+    alCambiarModoMapa(modoScroll);
 
     function estiloBeat(capa) {
       const v = valores(capa.feature.properties.beat), c = cortesPara(estado.turno);
