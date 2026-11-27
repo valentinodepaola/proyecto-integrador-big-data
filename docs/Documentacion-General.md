@@ -8,6 +8,8 @@ Este documento es la vista de conjunto del proyecto: qué es, cómo está armado
 
 **Presentación del proyecto:** [valentinodepaola.github.io/proyecto-integrador-big-data/vista/](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/). Son 15 diapositivas web para la Fase 4, explicadas en lenguaje simple y con animaciones: el problema, los datos, las cinco preguntas, cómo predice el modelo y qué tan bien, un simulador para elegir qué porcentaje de zonas patrullar y el mapa de predicciones en vivo (sección 5).
 
+**Reporte del proyecto:** [valentinodepaola.github.io/proyecto-integrador-big-data/reporte/](https://valentinodepaola.github.io/proyecto-integrador-big-data/reporte/). Es el mismo proyecto contado como artículo de lectura larga, para leerlo con calma o compartirlo.
+
 ---
 
 ## 1. Qué es el proyecto
@@ -126,6 +128,10 @@ python scripts/exportar-vista.py data/curated/predicciones_2025
 ```
 
 Son scripts con el JSON adentro, no archivos `.json`, para que la presentación también funcione abriendo `docs/vista/index.html` con doble clic: el navegador no deja leer archivos locales con `fetch`. Solo necesita internet para Leaflet y las fuentes.
+
+### Reporte del proyecto (Fase 4)
+
+[`docs/reporte/index.html`](reporte/index.html) cuenta el proyecto como un reportaje: fondo blanco, títulos en negro y rojo solo para lo que importa. En la portada, el mapa de los beats se dibuja y luego pinta las zonas que el modelo mandaría a vigilar de 12 a 18 h, semana por semana. Tres secciones tienen la gráfica fija mientras el texto avanza (al lado en computadora, arriba en teléfono): los patrones de los datos, el error contra las reglas simples y la curva de cobertura, que también se puede mover a mano. No tiene datos propios: lee `../vista/datos/` y `../vista/img/`, así que se actualiza solo cuando se regeneran los de la presentación.
 
 ---
 
@@ -275,6 +281,7 @@ Ideas en orden de utilidad. Ninguna está comprometida todavía; cuando se decid
 | [`notebooks/README.md`](../notebooks/README.md) | Instalación local, flujo de trabajo y reglas del notebook |
 | [`evidencia/README.md`](../evidencia/README.md) | Índice de las capturas por tipo |
 | [Presentación](https://valentinodepaola.github.io/proyecto-integrador-big-data/vista/) | Diapositivas de la Fase 4 con el mapa de predicciones en vivo (fuente en `docs/vista/`) |
+| [Reporte](https://valentinodepaola.github.io/proyecto-integrador-big-data/reporte/) | El proyecto contado como artículo, con gráficas que cambian al hacer scroll (fuente en `docs/reporte/`) |
 | [Project de GitHub](https://github.com/users/valentinodepaola/projects/5) | Tareas e issues de cada fase |
 
 **Cómo mantenerlo:** cada fase nueva tiene su propio `docs/FaseN-Plan-y-Alcance.md` con lo que pide la actividad, el plan y las decisiones de esa fase. Este documento se actualiza al cerrar cada fase (estado, resultados y próximos pasos) y cuando cambia la arquitectura o una decisión de la sección 8.
