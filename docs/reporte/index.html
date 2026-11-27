@@ -5,786 +5,454 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dónde y cuándo: predecir el delito en Chicago, zona por zona</title>
 <meta name="description" content="Reporte del proyecto integrador de Big Data: un millón de reportes de la policía de Chicago, un modelo que anticipa cuántos delitos habrá en cada zona y turno, y lo que eso significa para repartir patrullas.">
+<meta name="theme-color" content="#faf8f4">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root {
-  --papel: #ffffff;
-  --tinta: #000000;
-  --texto: #222222;
-  --texto-2: #5e5e5e;
-  --sangre: #8a0f0f;
-  --sangre-oscura: #5e0909;
-  --sangre-clara: #f6e4e4;
-  --gris: #b3b3b3;
-  --linea: #e4e4e4;
-  --serif: "Newsreader", Georgia, "Times New Roman", serif;
-  --sans: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --medida: 41rem;
-  --ancho: 68rem;
-}
-* { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--papel); color: var(--texto);
-  font: 400 1.25rem/1.62 var(--serif); font-optical-sizing: auto;
-  font-feature-settings: "kern" 1, "onum" 1; text-rendering: optimizeLegibility; }
-a { color: var(--sangre); text-decoration-thickness: 1px; text-underline-offset: 3px; }
-a:hover { color: var(--sangre-oscura); text-decoration-thickness: 2px; }
-:focus-visible { outline: 3px solid var(--sangre); outline-offset: 3px; }
-::selection { background: var(--sangre); color: #fff; }
-p { margin: 0 0 1.15em; }
-b, strong { font-weight: 600; color: var(--tinta); }
-
-/* Barra de lectura */
-.lectura { position: fixed; top: 0; left: 0; height: 3px; width: 0; background: var(--sangre); z-index: 10; }
-
-/* Columna del texto y piezas que salen de ella */
-.col { max-width: var(--medida); margin: 0 auto; padding: 0 1.25rem; }
-.ancho { max-width: var(--ancho); margin: 0 auto; padding: 0 1.25rem; }
-
-/* ---------- Portada ---------- */
-.portada { max-width: var(--ancho); margin: 0 auto; padding: 4.5rem 1.25rem 3rem;
-  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); gap: 3.5rem; align-items: center; }
-.portada h1 { font: 600 clamp(2.5rem, 5.2vw, 4.6rem)/1 var(--serif); font-variation-settings: "opsz" 72;
-  letter-spacing: -0.025em; color: var(--tinta); margin: 0 0 1.6rem; }
-.bajada { font-size: clamp(1.25rem, 2vw, 1.5rem); line-height: 1.42; color: var(--texto); margin: 0 0 2rem; max-width: 30em; }
-.firma { font: 400 .95rem/1.5 var(--sans); color: var(--texto-2); border-top: 2px solid var(--tinta); padding-top: .9rem; max-width: 30em; }
-.firma b { font-weight: 600; }
-.mapa-portada { position: relative; }
-.mapa-portada svg { width: 100%; height: auto; display: block; max-height: 78vh; }
-/* El mapa se dibuja con sus líneas, de norte a sur; luego las zonas señaladas se pintan semana por semana */
-.mapa-portada path { fill: var(--papel); stroke: var(--tinta); stroke-width: .7; stroke-linejoin: round;
-  stroke-dasharray: 1; stroke-dashoffset: 1; transition: fill .7s ease; }
-.mapa-portada.trazando path { animation: trazar 2.2s ease forwards; animation-delay: calc(var(--d) * 1ms); }
-@keyframes trazar { to { stroke-dashoffset: 0; } }
-.mapa-portada path.roja { fill: var(--sangre); }
-
-/* ---------- Cuerpo del artículo ---------- */
-article { padding-bottom: 4rem; }
-.entrada { font-size: 1.42rem; line-height: 1.55; color: var(--tinta); }
-h2 { font: 600 clamp(1.9rem, 3.6vw, 2.6rem)/1.08 var(--serif); font-variation-settings: "opsz" 60;
-  letter-spacing: -0.018em; color: var(--tinta); margin: 4.2rem 0 1.2rem; }
-h2::before { content: ""; display: block; width: 2.5rem; height: 4px; background: var(--sangre); margin-bottom: 1.1rem; }
-h3 { font: 600 1.1rem/1.3 var(--sans); color: var(--tinta); margin: 2.4rem 0 .6rem; }
-
-/* Cita destacada */
-.cita { margin: 2.8rem 0; padding: 0; font: italic 500 clamp(1.6rem, 3vw, 2.15rem)/1.25 var(--serif);
-  font-variation-settings: "opsz" 48; color: var(--sangre); letter-spacing: -0.01em; }
-
-/* Cifras en línea, como una ficha */
-.ficha { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin: 2.2rem 0 2.6rem;
-  border-top: 2px solid var(--tinta); border-bottom: 1px solid var(--linea); padding: 1.2rem 0; }
-.ficha div { font: 400 .9rem/1.4 var(--sans); color: var(--texto-2); }
-.ficha strong { display: block; font: 600 2.3rem/1 var(--serif); font-variation-settings: "opsz" 72;
-  color: var(--tinta); margin-bottom: .4rem; font-feature-settings: "lnum" 1, "tnum" 1; letter-spacing: -0.02em; }
-
-/* Figuras */
-figure { margin: 2.6rem 0; }
-.fig-ancha { max-width: var(--ancho); margin: 3rem auto; padding: 0 1.25rem; }
-figure img { width: 100%; height: auto; display: block; }
-figcaption { font: 400 .88rem/1.5 var(--sans); color: var(--texto-2); margin-top: .8rem; }
-figcaption b { color: var(--tinta); font-weight: 600; }
-.fig-titulo { font: 600 1rem/1.35 var(--sans); color: var(--tinta); margin: 0 0 .3rem; }
-.fig-sub { font: 400 .9rem/1.45 var(--sans); color: var(--texto-2); margin: 0 0 1.2rem; }
-.par-figuras { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-
-/* Gráficas propias */
-.grafica svg { width: 100%; height: auto; display: block; overflow: visible; }
-.grafica text { font-family: var(--sans); fill: var(--texto-2); }
-.eje line, .eje path { stroke: var(--linea); }
-.leyenda { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; font: 400 .85rem/1.4 var(--sans); color: var(--texto-2); margin: .2rem 0 1rem; }
-.leyenda span::before { content: ""; display: inline-block; width: 1.1rem; height: 3px; vertical-align: .3em; margin-right: .45rem; background: currentColor; }
-.ley-modelo { color: var(--sangre); } .ley-azar { color: var(--gris); } .ley-futuro { color: var(--tinta); }
-.leyenda span { color: var(--texto-2); }
-.leyenda .ley-modelo::before { background: var(--sangre); }
-.leyenda .ley-azar::before { background: var(--gris); }
-.leyenda .ley-futuro::before { background: repeating-linear-gradient(90deg, var(--tinta) 0 5px, transparent 5px 8px); }
-
-
-/* Transiciones de las gráficas que cambian con el scroll */
-.fila-error { transition: opacity .6s ease; }
-.fila-error .punto { transition: transform 1s cubic-bezier(.2,.7,.2,1); }
-.fila-error .riel { stroke-dasharray: 1; transition: stroke-dashoffset 1s cubic-bezier(.2,.7,.2,1); }
-.traza { stroke-dasharray: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 1.4s cubic-bezier(.3,.6,.2,1); }
-.traza.oculto { stroke-dashoffset: 1; }
-.aparece { transition: opacity .8s ease .3s; }
-.aparece.oculto { opacity: 0; }
-.lectura-curva { transition: opacity .6s ease; }
-.lectura-curva.oculto { opacity: 0; }
-.barra-crece { transform-box: fill-box; transform-origin: left center; transition: transform 1s cubic-bezier(.2,.7,.2,1); }
-.en-espera .barra-crece { transform: scaleX(0); }
-@media (prefers-reduced-motion: reduce) { .fila-error, .fila-error .punto, .fila-error .riel, .traza, .aparece, .barra-crece { transition: none; } }
-/* Control de la curva */
-.control { display: grid; grid-template-columns: auto 1fr; gap: .4rem 1rem; align-items: center; margin-top: 1rem;
-  font: 400 .95rem/1.4 var(--sans); color: var(--texto); }
-.control input[type=range] { width: 100%; accent-color: var(--sangre); height: 2rem; cursor: pointer; }
-.control output { font-weight: 700; color: var(--sangre); font-feature-settings: "tnum" 1; }
-.lectura-curva { font: 400 1.05rem/1.5 var(--sans); color: var(--texto); margin-top: .6rem; min-height: 3em; }
-.lectura-curva b { color: var(--sangre); }
-
-/* Tabla */
-table { width: 100%; border-collapse: collapse; font: 400 .95rem/1.4 var(--sans); margin: 1.6rem 0 2rem; font-feature-settings: "tnum" 1, "lnum" 1; }
-caption { text-align: left; font: 600 1rem/1.35 var(--sans); color: var(--tinta); margin-bottom: .6rem; }
-th { text-align: right; font-weight: 600; color: var(--tinta); border-bottom: 2px solid var(--tinta); padding: .5rem .4rem; vertical-align: bottom; }
-td { text-align: right; padding: .55rem .4rem; border-bottom: 1px solid var(--linea); }
-th:first-child, td:first-child { text-align: left; }
-tr.destacada td { color: var(--sangre); font-weight: 700; }
-
-/* Notas de método */
-details { border-top: 2px solid var(--tinta); margin: 2.4rem 0 0; padding-top: .9rem; font: 400 1rem/1.6 var(--sans); }
-details + details { border-top: 1px solid var(--linea); margin-top: 0; }
-summary { cursor: pointer; font-weight: 600; color: var(--tinta); list-style: none; padding: .2rem 0 .7rem; display: flex; justify-content: space-between; gap: 1rem; }
-summary::-webkit-details-marker { display: none; }
-summary::after { content: "+"; color: var(--sangre); font-weight: 700; font-size: 1.2rem; line-height: 1; }
-details[open] summary::after { content: "−"; }
-details p, details ul { color: var(--texto); margin: 0 0 1rem; }
-details ul { padding-left: 1.2rem; }
-
-/* Lista de aprendizajes */
-.aprendizajes { list-style: none; padding: 0; margin: 1.6rem 0; counter-reset: a; }
-.aprendizajes li { position: relative; padding-left: 2.6rem; margin-bottom: 1.3rem; }
-.aprendizajes li::before { counter-increment: a; content: counter(a); position: absolute; left: 0; top: .05em;
-  font: 600 1.6rem/1 var(--serif); color: var(--sangre); font-feature-settings: "lnum" 1; }
-
-/* Pie */
-.pie { border-top: 2px solid var(--tinta); max-width: var(--ancho); margin: 0 auto; padding: 1.6rem 1.25rem 3rem;
-  display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; font: 400 .92rem/1.6 var(--sans); color: var(--texto-2); }
-.pie b { color: var(--tinta); }
-
-
-/* ---------- Pasos de scroll ----------
-   En pantallas angostas cada paso es texto normal y la gráfica va al final; en escritorio
-   la gráfica se queda fija a la derecha y cambia con cada paso. */
-.scrolly { max-width: var(--medida); margin: 0 auto; padding: 0 1.25rem; }
-.scrolly .paso-fig { margin: 1.6rem 0 2.6rem; }
-.scrolly .escena.grafica { margin: 2.2rem 0 2.6rem; }
-.galeria .escena { display: none; }
-.cabecera, .barra-seccion { display: none; }
-
-@media (min-width: 1100px) {
-  body { font-size: 1.3rem; }
-  /* Cabecera de periódico */
-  .cabecera { display: flex; justify-content: space-between; max-width: 80rem; margin: 0 auto; padding: 1.1rem 2rem .7rem;
-    border-bottom: 2px solid var(--tinta); font: 500 .85rem/1.3 var(--sans); color: var(--tinta); }
-  .cabecera span:nth-child(2) { color: var(--sangre); font-weight: 600; }
-  /* Portada a toda la pantalla: título arriba, firma abajo, mapa a la derecha */
-  .portada { max-width: 80rem; min-height: calc(100vh - 3.3rem); padding: 3rem 2rem 2.5rem;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 4rem; align-items: stretch; }
-  .portada > div:first-child { display: flex; flex-direction: column; justify-content: space-between; gap: 2rem; }
-  .portada h1 { font-size: clamp(4rem, 6.2vw, 6.6rem); line-height: .95; letter-spacing: -0.035em; margin: 0; }
-  .bajada { font-size: 1.6rem; max-width: 26em; margin-bottom: 1.6rem; }
-  .firma { max-width: 34em; }
-  .mapa-portada { display: flex; align-items: center; }
-  #mapa-portada { width: 100%; }
-  .mapa-portada svg { max-height: calc(100vh - 9rem); }
-  /* Entrada con capitular */
-  .entrada { font-size: 1.55rem; margin-top: 2rem; }
-  .entrada::first-letter { float: left; font-size: 4.6em; line-height: .82; font-weight: 600; color: var(--sangre);
-    margin: .06em .1em 0 -.02em; font-variation-settings: "opsz" 72; }
-  h2 { font-size: 3.1rem; margin-top: 6rem; }
-  .col { max-width: 43rem; }
-  /* Escenas fijas */
-  .scrolly { max-width: 80rem; padding: 0 2rem; display: grid; grid-template-columns: minmax(0, 25rem) minmax(0, 1fr);
-    gap: 5rem; align-items: start; margin: 1rem auto 3rem; }
-  .scrolly .pasos { padding: 18vh 0 30vh; }
-  .scrolly .paso { min-height: 78vh; display: flex; flex-direction: column; justify-content: center;
-    opacity: .22; transition: opacity .5s ease; }
-  .scrolly .paso.activo { opacity: 1; }
-  .scrolly .paso p:last-child { margin-bottom: 0; }
-  .scrolly .paso-fig { display: none; }
-  .scrolly .escena { position: sticky; top: 9vh; height: 82vh; margin: 0; display: flex; flex-direction: column; justify-content: center; }
-  .galeria .escena { display: block; }
-  .galeria .cuadro { position: absolute; inset: 0; margin: 0; display: flex; flex-direction: column; justify-content: center;
-    opacity: 0; transform: scale(.985); transition: opacity .6s ease, transform .8s cubic-bezier(.2,.7,.2,1); }
-  .galeria .cuadro.visible { opacity: 1; transform: none; }
-  .galeria .cuadro img { max-height: 72vh; width: 100%; object-fit: contain; }
-  .scrolly .cita { font-size: 2.3rem; margin: 2rem 0 0; }
-  /* Barra superior con la sección actual, aparece al dejar la portada */
-  .barra-seccion { display: flex; justify-content: space-between; align-items: center; gap: 2rem; position: fixed; top: 0; left: 0; right: 0;
-    z-index: 9; height: 2.9rem; padding: 0 2rem; background: rgba(255,255,255,.96); border-bottom: 1px solid var(--linea);
-    transform: translateY(-100%); transition: transform .35s ease; }
-  .barra-seccion.visible { transform: none; }
-  .bs-titulo { font: 600 1rem/1 var(--serif); color: var(--tinta); }
-  .bs-seccion { font: 600 .85rem/1 var(--sans); color: var(--sangre); }
-}
-@media (min-width: 1100px) and (prefers-reduced-motion: reduce) {
-  .scrolly .paso { opacity: 1; } .galeria .cuadro { transition: none; }
-}
-
-
-/* Celular y tableta: la gráfica se queda fija arriba y el texto pasa por debajo */
-@media (max-width: 1099px) and (prefers-reduced-motion: no-preference) {
-  .scrolly { display: flex; flex-direction: column; }
-  .scrolly .escena { order: -1; position: sticky; top: 3px; z-index: 2; background: var(--papel);
-    margin: 0 -1.25rem; padding: .9rem 1.25rem .7rem; border-bottom: 1px solid var(--linea); }
-  .scrolly .escena.grafica { margin: 0 -1.25rem; }
-  .scrolly .escena .fig-titulo { font-size: .92rem; }
-  .scrolly .escena .fig-sub { display: none; }
-  .scrolly .escena .leyenda { margin-bottom: .4rem; font-size: .78rem; }
-  .scrolly .escena .control { margin-top: .3rem; font-size: .85rem; }
-  .scrolly .escena .control input[type=range] { height: 1.6rem; }
-  .scrolly .escena .lectura-curva { font-size: .82rem; line-height: 1.4; margin: .2rem 0 0; min-height: 0; }
-  .galeria .escena { display: block; height: 54vh; }
-  .galeria .cuadro { position: absolute; inset: .9rem 1.25rem .7rem; margin: 0; display: flex; flex-direction: column; justify-content: center;
-    opacity: 0; transition: opacity .5s ease; }
-  .galeria .cuadro.visible { opacity: 1; }
-  .galeria .cuadro img { max-height: calc(54vh - 4.5rem); width: 100%; object-fit: contain; }
-  .galeria .cuadro figcaption { font-size: .8rem; margin-top: .5rem; }
-  .scrolly .paso-fig { display: none; }
-  .scrolly .pasos { padding: 4vh 0 34vh; }
-  .scrolly .paso { min-height: 52vh; opacity: .25; transition: opacity .45s ease; }
-  .scrolly .paso.activo { opacity: 1; }
-  .scrolly .cita { margin: 1.6rem 0 0; }
-}
-
-@media (max-width: 860px) {
-  .portada { grid-template-columns: 1fr; gap: 1.5rem; padding-top: 2.2rem; }
-  .mapa-portada { order: -1; max-width: 22rem; margin: 0 auto; width: 100%; }
-  .mapa-portada svg { max-height: 46vh; }
-  .par-figuras { grid-template-columns: 1fr; }
-  .pie { grid-template-columns: 1fr; }
-}
-@media (max-width: 600px) {
-  body { font-size: 1.125rem; }
-  .entrada { font-size: 1.25rem; }
-  .ficha { grid-template-columns: 1fr; gap: 1rem; }
-  .ficha strong { font-size: 2rem; }
-  table { font-size: .85rem; }
-  th, td { padding: .45rem .25rem; }
-}
-@media (prefers-reduced-motion: reduce) { .mapa-portada path { transition: none; stroke-dashoffset: 0; animation: none !important; } }
-@media print { .lectura, .control { display: none; } a { color: var(--tinta); } }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Schibsted+Grotesk:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilos.css">
 </head>
 <body>
-<div class="lectura" id="lectura" aria-hidden="true"></div>
-<div class="cabecera"><span>Proyecto integrador de tecnologías de Big Data</span><span>Chicago, 2022 a 2025</span><span>Noviembre de 2026</span></div>
-<div class="barra-seccion" id="barra-seccion" aria-hidden="true"><span class="bs-titulo">Dónde y cuándo: predecir el delito en Chicago</span><span class="bs-seccion" id="bs-seccion"></span></div>
+<a class="saltar" href="#dimension">Saltar al artículo</a>
 
-<header class="portada">
+<div class="barra" id="barra" aria-hidden="true">
+  <span class="marca">Delito en Chicago</span>
+  <span class="capitulo" id="barra-capitulo"></span>
+  <span class="progreso" id="barra-progreso"></span>
+</div>
+
+<!-- ================= PORTADA ================= -->
+<header class="portada" id="inicio">
   <div>
-    <h1>Dónde y cuándo: predecir el delito en Chicago, zona por zona</h1>
+    <p class="kicker">Investigación · Proyecto integrador de Big Data · Chicago, 2022 a 2025</p>
+    <h1>Dónde y cuándo: predecir el delito en Chicago, <em>zona por zona</em></h1>
     <p class="bajada">Usamos un millón de reportes de la policía para anticipar cuántos delitos habrá cada semana en cada rincón de la ciudad. El modelo funciona, pero lo más útil fue descubrir hasta dónde puede llegar.</p>
-    <p class="firma">Por <b>Valentino De Paola</b>, <b>Carlos David Gonzalez Davila</b> y <b>Eduardo Lopez Uresti</b><br>Proyecto integrador de tecnologías de Big Data, noviembre de 2026</p>
+    <div class="cifra-portada">
+      <strong class="contador">1,002,283</strong>
+      <span>reportes de la policía de Chicago, del 1 de enero de 2022 al 31 de diciembre de 2025</span>
+    </div>
+    <p class="firma">Por <b>Valentino De Paola</b>, <b>Carlos David Gonzalez Davila</b> y <b>Eduardo Lopez Uresti</b><br>Proyecto integrador de tecnologías de Big Data · noviembre de 2026</p>
+    <a class="bajar" href="#dimension"><span aria-hidden="true">↓</span>Empezar a leer</a>
   </div>
-  <figure class="mapa-portada" style="margin:0">
-    <div id="mapa-portada" role="img" aria-label="Mapa de Chicago dividido en 274 zonas de patrullaje; en rojo, las que el modelo mandaría a vigilar en el turno de la tarde, semana por semana durante las 10 semanas de prueba."></div>
+  <figure class="mapa-portada">
+    <div id="mapa-portada" role="img" aria-label="Mapa de Chicago hecho con cuadros de unos 500 metros: entre más oscuro, más incidentes se reportaron de 2022 a 2025. Las manchas más oscuras están en el centro, el oeste y el sur."></div>
+    <figcaption><b>Cada cuadro, unos 500 metros</b>Incidentes reportados de 2022 a 2025<span class="leyenda-calor"><span>menos</span><i></i><span>más</span></span></figcaption>
   </figure>
 </header>
 
-<article>
-<div class="col">
-  <p class="entrada">Cada semana, alguien en la policía de Chicago tiene que decidir a dónde mandar las patrullas. Son pocas para una ciudad de casi tres millones de habitantes, así que la pregunta no es si se puede vigilar todo, sino qué conviene vigilar primero.</p>
-  <p>Este reporte cuenta cómo intentamos ayudar a tomar esa decisión con datos. Juntamos todos los delitos reportados entre 2022 y 2025, los procesamos con herramientas de Big Data en la nube y entrenamos un modelo que, para cada zona de la ciudad y cada turno del día, estima cuántos delitos habrá la semana siguiente. Las zonas con el número más alto son las que conviene reforzar.</p>
-  <p>La respuesta corta es que el modelo ayuda: si la policía refuerza el 10&nbsp;% de las zonas y turnos que señala, cubre el doble de delitos que si los eligiera al azar. La respuesta larga es más interesante, y tiene que ver con una regla simple que nos costó mucho vencer y con un límite que ningún modelo puede cruzar.</p>
-
-  <h2>La ciudad en 1,096 piezas</h2>
-  <p>La policía de Chicago ya divide la ciudad en <b>274 zonas de patrullaje</b>, que en inglés llaman <i>beats</i>. Cada una es más o menos lo que cubre una patrulla. Decidimos trabajar con esas mismas zonas porque son las que el mando usa para repartir a su gente: decirle "refuerza la zona 1834 por la tarde" es algo que puede hacer el lunes, mientras que una cuadrícula abstracta no le sirve de nada.</p>
-  <p>Después partimos el día en cuatro turnos de seis horas: madrugada, mañana, tarde y noche. Eso deja <b>1,096 combinaciones de zona y turno</b>. Para cada una, el modelo responde una sola pregunta: ¿cuántos delitos habrá aquí la próxima semana?</p>
-
-  <div class="ficha" role="list">
-    <div role="listitem"><strong>1,002,283</strong>delitos reportados de 2022 a 2025</div>
-    <div role="listitem"><strong>208</strong>semanas de historia</div>
-    <div role="listitem"><strong>3.7</strong>delitos por zona y turno a la semana, en promedio</div>
+<main>
+<!-- ================= 01 · DIMENSIÓN ================= -->
+<section class="capitulo-sec" id="dimension" data-capitulo="El problema">
+  <div class="col">
+    <p class="antetitulo revela" data-n="01">El problema</p>
+    <h2 class="revela">Pocas patrullas, una ciudad entera</h2>
+    <p class="entrada revela">Cada semana, alguien en la policía de Chicago tiene que decidir a dónde mandar las patrullas. Son pocas para una ciudad de casi tres millones de habitantes, así que la pregunta no es si se puede vigilar todo, sino qué conviene vigilar primero.</p>
+    <p class="revela">Este reporte cuenta cómo intentamos ayudar a tomar esa decisión con datos. Juntamos todos los delitos reportados entre 2022 y 2025, los procesamos con herramientas de Big Data en la nube y entrenamos un modelo que, para cada zona de la ciudad y cada turno del día, estima cuántos delitos habrá la semana siguiente. Las zonas con el número más alto son las que conviene reforzar.</p>
+    <p class="revela">La respuesta corta es que el modelo ayuda: si la policía refuerza el 10&nbsp;% de las zonas y turnos que señala, cubre <b>el doble de delitos</b> que si los eligiera al azar. La respuesta larga es más interesante, y tiene que ver con una regla simple que nos costó mucho vencer y con un límite que ningún modelo puede cruzar.</p>
   </div>
 
-  <h2>Un millón de reportes</h2>
-  <p>Los datos vienen del portal de datos abiertos de la ciudad, donde el Departamento de Policía publica cada incidente reportado: qué pasó, dónde y a qué hora. Solo 2025 son 238 mil reportes. El portal sigue corrigiendo y agregando casos con los meses, así que guardamos cada descarga con su fecha; de otro modo nadie podría repetir nuestros números.</p>
-  <p>Para procesarlos montamos un pequeño clúster en Amazon Web Services. En realidad es una sola máquina, pero corre las mismas herramientas que un clúster grande: Hadoop para guardar los archivos, Spark para procesarlos y Hive para consultarlos como tablas. Si mañana hubiera que analizar diez ciudades en lugar de una, bastaría con agregar máquinas sin reescribir el análisis.</p>
-  <p>La limpieza fue menos dramática de lo que esperábamos. No tuvimos que tirar ningún registro: unas dos mil coordenadas dudosas se corrigieron con el centro de su zona, y casi quince mil reportes con hora inventada (el sistema pone medianoche cuando no se sabe) se marcaron para no confundir al modelo.</p>
-
-  <h2>Lo que dicen los datos</h2>
-  <p>Antes de predecir nada, miramos cómo se reparte el delito. Cuatro patrones se repiten año tras año.</p>
-</div>
-
-<section class="scrolly galeria" aria-label="Cuatro patrones del delito en Chicago">
-  <div class="pasos">
-    <div class="paso">
-      <p><b>Se concentra en pocos lugares.</b> El 10&nbsp;% de la ciudad, medido en cuadros de 500 metros, reúne el 35.6&nbsp;% de los incidentes. Las manchas más oscuras están en el centro, el oeste y el sur.</p>
-      <figure class="paso-fig"><img src="../vista/img/C_p1_mapa_incidentes_2022_2025.png" alt="Mapa de calor de Chicago: los incidentes se concentran en el centro, el oeste y el sur." loading="lazy">
-        <figcaption><b>Dónde.</b> Incidentes por cuadro de 500 metros, 2022 a 2025.</figcaption></figure>
-    </div>
-    <div class="paso">
-      <p><b>Tiene horario.</b> La hora con más delitos son las tres de la tarde. Entre semana el pico va de las 15 a las 19 horas; el fin de semana sube la madrugada del sábado y el domingo. Seis de cada diez delitos ocurren entre el mediodía y la medianoche.</p>
-      <figure class="paso-fig"><img src="../vista/img/C_p2_dia_hora_2022_2025.png" alt="Mapa de calor por día y hora: el pico es entre semana de 15 a 19 horas y la madrugada del fin de semana." loading="lazy">
-        <figcaption><b>Cuándo.</b> Incidentes por día de la semana y hora del día, 2022 a 2025.</figcaption></figure>
-    </div>
-    <div class="paso">
-      <p><b>Tres tipos son más de la mitad.</b> El robo sin violencia (23.2&nbsp;%), la agresión física (17.9&nbsp;%) y el daño a la propiedad (11&nbsp;%) suman más de la mitad de todos los reportes. Los delitos de drogas y de armas los dejamos fuera del modelo por una razón que explicamos más adelante.</p>
-      <figure class="paso-fig"><img src="../vista/img/C_p3_tipos_2025.png" alt="Gráfica de barras de los tipos de delito más frecuentes en 2025: robo, agresión física y daño a la propiedad encabezan la lista." loading="lazy">
-        <figcaption><b>Qué tipo.</b> Los tipos de delito más frecuentes en 2025.</figcaption></figure>
-    </div>
-    <div class="paso">
-      <p><b>Sube en verano, y 2025 fue más tranquilo.</b> En verano hay un 9&nbsp;% más delitos que el resto del año. Y 2023 y 2024 tuvieron más que 2025, un detalle que importa más de lo que parece.</p>
-      <figure class="paso-fig"><img src="../vista/img/C_p4_serie_semanal_2022_2025.png" alt="Delitos por semana de 2022 a 2025: suben cada verano y 2025 queda por debajo de 2023 y 2024." loading="lazy">
-        <figcaption><b>A lo largo del año.</b> Delitos por semana de 2022 a 2025.</figcaption></figure>
+  <div class="ancho">
+    <div class="cifras revela" role="list">
+      <div role="listitem"><strong class="contador rojo">1,002,283</strong><span>delitos reportados de 2022 a 2025</span></div>
+      <div role="listitem"><strong class="contador">208</strong><span>semanas de historia</span></div>
+      <div role="listitem"><strong class="contador">31</strong><span>tipos de delito en el catálogo de la policía</span></div>
+      <div role="listitem"><strong class="contador">1,096</strong><span>combinaciones de zona y turno: lo que el modelo predice</span></div>
+      <div role="listitem"><strong class="contador">3.7</strong><span>delitos por zona y turno a la semana, en promedio</span></div>
     </div>
   </div>
-  <div class="escena" aria-hidden="true"></div>
+
+  <div class="col">
+    <h3 class="revela">La ciudad en 1,096 piezas</h3>
+    <p class="revela">La policía de Chicago ya divide la ciudad en <b>274 zonas de patrullaje</b>, que en inglés llaman <i>beats</i>. Cada una es más o menos lo que cubre una patrulla. Decidimos trabajar con esas mismas zonas porque son las que el mando usa para repartir a su gente: decirle "refuerza la zona 1834 por la tarde" es algo que puede hacer el lunes, mientras que una cuadrícula abstracta no le sirve de nada.</p>
+    <p class="revela">Después partimos el día en cuatro turnos de seis horas. Eso deja <b>274 × 4 = 1,096 combinaciones de zona y turno</b>. Para cada una, el modelo responde una sola pregunta: ¿cuántos delitos habrá aquí la próxima semana?</p>
+    <div class="turnos revela" aria-label="Los cuatro turnos del día">
+      <div class="t0"><b>Madrugada</b><span>00 a 06 h</span></div>
+      <div class="t1"><b>Mañana</b><span>06 a 12 h</span></div>
+      <div class="t2"><b>Tarde</b><span>12 a 18 h</span></div>
+      <div class="t3"><b>Noche</b><span>18 a 24 h</span></div>
+    </div>
+
+    <h3 class="revela">Un millón de reportes</h3>
+    <p class="revela">Los datos vienen del <a href="https://data.cityofchicago.org/">portal de datos abiertos de la ciudad</a>, donde el Departamento de Policía publica cada incidente reportado: qué pasó, dónde y a qué hora. Solo 2025 son 238 mil reportes. El portal sigue corrigiendo y agregando casos con los meses, así que guardamos cada descarga con su fecha; de otro modo nadie podría repetir nuestros números.</p>
+    <figure class="figura revela" aria-labelledby="t-anios">
+      <p class="fig-titulo" id="t-anios">Reportes por año</p>
+      <p class="fig-sub">2023 y 2024 tuvieron más delitos que 2025, un detalle que importa más de lo que parece.</p>
+      <div class="anios en-espera" id="grafica-anios"></div>
+    </figure>
+    <p class="revela">Para procesarlos montamos un pequeño clúster en Amazon Web Services. En realidad es una sola máquina, pero corre las mismas herramientas que un clúster grande: Hadoop para guardar los archivos, Spark para procesarlos y Hive para consultarlos como tablas. Si mañana hubiera que analizar diez ciudades en lugar de una, bastaría con agregar máquinas sin reescribir el análisis.</p>
+  </div>
+  <div class="ancho">
+    <div class="pipeline revela" aria-label="Recorrido de los datos">
+      <div><b>Portal de Chicago</b><span>Un CSV por año, guardado con su fecha de descarga</span></div>
+      <div class="capa"><b>Raw</b><span>Los archivos tal cual, en HDFS</span></div>
+      <div class="capa"><b>Processed</b><span>Limpios con Spark: fechas, coordenadas y horas revisadas</span></div>
+      <div class="capa"><b>Curated</b><span>Conteos por zona, turno y semana, en tablas de Hive</span></div>
+      <div class="final"><b>Modelos</b><span>Random Forest y Gradient Boosted Trees con SparkML</span></div>
+    </div>
+  </div>
+  <div class="col">
+    <p class="revela">La limpieza fue menos dramática de lo que esperábamos. No tuvimos que tirar ningún registro: unas dos mil coordenadas dudosas se corrigieron con el centro de su zona, y casi quince mil reportes con hora inventada (el sistema pone medianoche cuando no se sabe) se marcaron para no confundir al modelo.</p>
+  </div>
 </section>
 
-<div class="col">
-  <h2>La regla que no podíamos vencer</h2>
-</div>
-
-<section class="scrolly" data-grafica="error" aria-label="Cómo le ganamos a la regla simple">
-  <div class="pasos">
-    <div class="paso">
-      <p>Entrenamos dos modelos de aprendizaje automático, Random Forest y Gradient Boosted Trees, con las semanas de 2025 anteriores a octubre. Luego les pedimos que predijeran las diez semanas siguientes, de finales de octubre a finales de diciembre, sin dejarles ver nada de ese periodo. Con el pasado se aprende, con el futuro se califica.</p>
-      <p>Nuestro primer modelo se equivocaba en promedio por 1.64 delitos por zona y turno.</p>
+<!-- ================= 02 · DÓNDE ================= -->
+<section class="capitulo-sec" id="donde" data-capitulo="Dónde">
+  <div class="col">
+    <p class="antetitulo revela" data-n="02">Dónde</p>
+    <h2 class="revela">El delito se concentra en pocos lugares</h2>
+    <p class="revela">Antes de predecir nada, miramos cómo se reparte el delito. El primer patrón es geográfico: <b>en 2025, el 10&nbsp;% de la ciudad, medido en cuadros de 500 metros, reúne el 35.6&nbsp;% de los incidentes.</b> Las manchas más oscuras están en el centro, el oeste y el sur.</p>
+    <p class="revela">Explora el mapa: cambia de año, pasa de los cuadros a las zonas de patrullaje con las que trabaja el modelo, acércate con los botones o con doble clic y arrastra para moverte.</p>
+  </div>
+  <div class="figura-ancha revela">
+    <p class="fig-titulo">¿En qué partes de Chicago se reportan más delitos?</p>
+    <p class="fig-sub">Incidentes reportados por cuadro de unos 500 metros o por zona de patrullaje. El color ordena de menos a más: cada tono agrupa cuadros (o zonas) con un nivel parecido de actividad. Sin los reportes cuya ubicación se corrigió con el centro de su zona.</p>
+    <div class="controles">
+      <div class="grupo-control"><span class="etq">Ver</span><div id="mapa-vista"></div></div>
+      <div class="grupo-control"><span class="etq">Año</span><div id="mapa-anio"></div></div>
+      <label class="casilla"><input type="checkbox" id="mapa-top" checked> Marcar el 10&nbsp;% con más incidentes</label>
     </div>
-    <div class="paso">
-      <p>Para saber si eso es bueno hay que compararlo con algo. La comparación más dura resultó ser la más simple: repetir, para cada zona y turno, su promedio histórico. Esa regla de una línea se equivocaba por 1.61. Perdíamos.</p>
-    </div>
-    <div class="paso">
-      <p>Probamos lo obvio: darle más historia. Repetimos todo con cuatro años en lugar de uno, y todo quedó un poco peor. La razón: 2023 y 2024 tuvieron más delitos que 2025, así que promediar toda la historia sobreestima el presente.</p>
-      <blockquote class="cita">Lo que más anticipa a una zona no es su historia completa, sino su último año.</blockquote>
-    </div>
-    <div class="paso">
-      <p>Con esa idea agregamos variables nuevas: cuántos delitos hubo hace dos semanas y hace exactamente un año, el promedio de las últimas 52 semanas, la época del año, lo que pasó en las zonas vecinas y los días festivos. Los que más ayudaron fueron los que miran el último año. El clima también ayudaba, pero lo descartamos: usamos el clima que de verdad hizo, y un lunes nadie sabe qué temperatura hará el viernes.</p>
-      <p>El modelo mejorado se equivoca por <b>1.59</b> y le gana al promedio histórico en las diez semanas de prueba. Pero por poco: la regla "repetir el promedio del último año", sin modelo, ya está en 1.61.</p>
-    </div>
-    <div class="paso">
-      <p>La mejora no vino de un algoritmo más sofisticado, sino de mirar el periodo correcto: casi el 40&nbsp;% del modelo es el promedio de las últimas 52 semanas. Y queda una marca más a la derecha, a la que ningún modelo llega.</p>
+    <div class="explorador">
+      <div class="lienzo-mapa">
+        <svg id="mapa-explorar" role="img" aria-label="Mapa interactivo de incidentes en Chicago." preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="zoom">
+          <button class="boton-icono" type="button" id="zoom-mas" aria-label="Acercar">+</button>
+          <button class="boton-icono" type="button" id="zoom-menos" aria-label="Alejar">−</button>
+          <button class="boton-icono" type="button" id="zoom-reset" aria-label="Ver toda la ciudad">⤢</button>
+        </div>
+        <span class="pista" id="mapa-pista">Doble clic o Ctrl + rueda para acercar · arrastra para moverte</span>
+      </div>
+      <aside class="panel-mapa" aria-live="polite">
+        <div class="dato-grande"><strong id="mapa-dato">35.6&nbsp;%</strong><span id="mapa-dato-texto">de los incidentes de 2025 cae en el 10&nbsp;% de los cuadros con más actividad.</span></div>
+        <div class="leyenda-calor" style="margin-top:1.4rem"><span>menos</span><i></i><span id="mapa-leyenda-max">más</span></div>
+        <h4>Distritos con más incidentes</h4>
+        <ol class="lista-barras" id="mapa-distritos"></ol>
+        <p class="fig-nota">El mapa cuenta incidentes registrados, no tasas por habitante: el centro tiene pocos residentes pero mucha gente de paso, y por eso sale tan alto.</p>
+      </aside>
     </div>
   </div>
-  <figure class="escena grafica">
-    <p class="fig-titulo">Error promedio por zona y turno en las 10 semanas de prueba</p>
-    <p class="fig-sub">Delitos de diferencia entre lo que se predijo y lo que pasó. Más a la derecha es mejor.</p>
-    <div id="grafica-error"></div>
-  </figure>
 </section>
 
-<div class="col">
-  <h2>El límite que ningún modelo cruza</h2>
-  <p>En algún momento dejamos de preguntarnos cómo mejorar y empezamos a preguntarnos cuánto se puede mejorar. Es una pregunta que casi nunca se hace y que cambió por completo cómo leemos los resultados.</p>
-  <p>Aunque supiéramos exactamente qué tan peligrosa es cada zona en cada turno, el número de delitos de una semana concreta seguiría teniendo una parte de azar, igual que una moneda bien balanceada no cae cara exactamente la mitad de las veces. Calculamos que ese azar, por sí solo, deja un error de alrededor de <b>1.53</b>. Nuestro modelo está en 1.59. Quedan unas centésimas por ganar, no más.</p>
-  <p>Lo mismo pasa con la cobertura. Si alguien supiera de antemano cuáles van a ser las zonas más activas y reforzara justo el 10&nbsp;% de ellas, cubriría como máximo el <b>26&nbsp;%</b> de los delitos. Al empezar el proyecto nos pusimos como meta el 40&nbsp;%, tomada de estudios que usaban cuadrículas mucho más pequeñas. Con esta forma de dividir la ciudad, esa meta era imposible desde el principio.</p>
-  <p>Estudios hechos en otras ciudades, como Dallas, llegan a la misma conclusión: ganarle a "repetir lo reciente" es lo más difícil de la predicción de delitos.</p>
-
-  <h2>Qué significa para una patrulla</h2>
-</div>
-
-<section class="scrolly" data-grafica="curva" aria-label="Cuántos delitos cubre cada estrategia de patrullaje">
-  <div class="pasos">
-    <div class="paso">
-      <p>Al mando policial no le dice mucho que el error sea 1.59. Lo que necesita saber es otra cosa: si refuerzo cierta cantidad de zonas y turnos, ¿qué parte de los delitos queda dentro?</p>
-      <p>Si las eligiera al azar, cubriría justo la misma proporción: el 10&nbsp;% de las zonas, el 10&nbsp;% de los delitos.</p>
+<!-- ================= 03 · CUÁNDO ================= -->
+<section class="capitulo-sec calido" id="cuando" data-capitulo="Cuándo">
+  <div class="col">
+    <p class="antetitulo revela" data-n="03">Cuándo</p>
+    <h2 class="revela">Tiene horario, y también temporada</h2>
+    <p class="revela">La hora con más delitos son las tres de la tarde. Entre semana el pico va de las 15 a las 19 horas; el fin de semana sube la madrugada del sábado y el domingo. Seis de cada diez delitos ocurren entre el mediodía y la medianoche.</p>
+  </div>
+  <div class="figura-ancha revela">
+    <p class="fig-titulo">¿A qué hora y qué día ocurren más delitos?</p>
+    <p class="fig-sub">Incidentes por día de la semana y hora del día. Sin los reportes con hora desconocida, que el sistema registra a las 00:00 o a las 12:00 exactas. Elige un día para ver su perfil por hora.</p>
+    <div class="controles">
+      <div class="grupo-control"><span class="etq">Año</span><div id="hm-anio"></div></div>
+      <div class="grupo-control"><span class="etq">Día</span><div id="hm-dia"></div></div>
     </div>
-    <div class="paso">
-      <p>Siguiendo al modelo, con el 10&nbsp;% de las zonas y turnos, que son 110 de 1,096, se cubre alrededor del <b>20&nbsp;% de los delitos</b>: unos 750 por semana, contra unos 380 al azar. Es el doble con el mismo número de patrullas.</p>
-      <p>La línea punteada es lo que lograría alguien que conociera el futuro: 26&nbsp;%. El modelo llega al 76&nbsp;% de eso.</p>
-    </div>
-    <div class="paso">
-      <p>La ventaja del modelo es mayor cuanto más concentrado está el esfuerzo. Con el 5&nbsp;% de las zonas cubre más del doble que el azar; con el 30&nbsp;%, casi la mitad de los delitos. Dónde poner el corte depende de cuántas patrullas haya, y esa decisión le toca a quien conoce el presupuesto.</p>
-    </div>
-    <div class="paso">
-      <p>Un detalle que nos parece una buena noticia: las zonas que marca el modelo se parecen mucho a las que marcaría la experiencia. El modelo no contradice a los comandantes; ordena lo que ya intuyen, le pone números y lo actualiza cada semana.</p>
-      <p>Prueba tú: mueve el control de la gráfica.</p>
+    <div class="patrones">
+      <div>
+        <div class="grafica desliza" id="grafica-heatmap"></div>
+        <div class="leyenda-calor" style="margin:.4rem 0 1.8rem"><span>menos</span><i></i><span>más incidentes</span></div>
+        <p class="fig-titulo" id="horas-titulo">Incidentes por hora, todos los días</p>
+        <div class="leyenda" id="horas-leyenda"></div>
+        <div class="grafica" id="grafica-horas"></div>
+      </div>
+      <div class="hallazgos" aria-live="polite">
+        <div><strong id="h-pico">15 h</strong><span id="h-pico-t">la hora con más incidentes</span></div>
+        <div><strong id="h-tarde">60.7&nbsp;%</strong><span>ocurre entre el mediodía y la medianoche</span></div>
+        <div><strong id="h-dia">Viernes</strong><span id="h-dia-t">el día más activo</span></div>
+      </div>
     </div>
   </div>
-  <figure class="escena grafica">
+
+  <div class="col">
+    <h3 class="revela">Sube en verano, y 2025 fue más tranquilo</h3>
+    <p class="revela">En verano hay un 9&nbsp;% más delitos que el resto del año. Y 2023 y 2024 tuvieron más que 2025, un detalle que importa más de lo que parece y que va a volver cuando hablemos del modelo.</p>
+  </div>
+  <div class="figura-ancha revela">
+    <p class="fig-titulo">Delitos por semana, un año encima del otro</p>
+    <p class="fig-sub">Bloques de 7 días desde el 1 de enero de cada año. La franja marca las 10 semanas con las que se calificaron los modelos (de finales de octubre a finales de diciembre de 2025).</p>
+    <div class="controles"><div class="grupo-control"><span class="etq">Tipo</span><div id="serie-tipo"></div></div></div>
+    <div class="leyenda" id="serie-leyenda"></div>
+    <div class="grafica" id="grafica-serie"></div>
+  </div>
+</section>
+
+<!-- ================= 04 · QUÉ ================= -->
+<section class="capitulo-sec" id="que" data-capitulo="Qué tipo">
+  <div class="col">
+    <p class="antetitulo revela" data-n="04">Qué tipo</p>
+    <h2 class="revela">Tres tipos son más de la mitad</h2>
+    <p class="revela">El robo sin violencia (23.2&nbsp;%), la agresión física (17.9&nbsp;%) y el daño a la propiedad (11&nbsp;%) suman más de la mitad de todos los reportes de 2025. Los delitos de drogas y de armas los dejamos fuera del modelo por una razón que explicamos más adelante: se registran sobre todo donde ya hay policía.</p>
+  </div>
+  <div class="figura-ancha revela" style="max-width:62rem">
+    <p class="fig-titulo">Los 10 tipos de delito más frecuentes</p>
+    <p class="fig-sub">Porcentaje del total de reportes del año. En gris, los tipos que el modelo deja fuera.</p>
+    <div class="controles"><div class="grupo-control"><span class="etq">Año</span><div id="tipos-anio"></div></div></div>
+    <div class="leyenda"><span><i style="background:var(--incidente)"></i>Entra al modelo</span><span><i style="background:var(--linea-2)"></i>Excluido (sesgo de patrullaje)</span></div>
+    <div class="grafica" id="grafica-tipos"></div>
+  </div>
+  <div class="figura-ancha revela" style="max-width:62rem">
+    <p class="fig-titulo">Cómo cambió cada tipo de 2022 a 2025</p>
+    <p class="fig-sub">Reportes por año de los seis tipos más frecuentes en 2025, con 2022 como punto de partida (línea punteada) y la misma escala en todas: una pendiente igual es un cambio igual.</p>
+    <div class="multiples" id="multiples"></div>
+  </div>
+</section>
+
+<!-- ================= 05 · MODELOS ================= -->
+<section class="capitulo-sec calido" id="modelos" data-capitulo="La regla que no podíamos vencer">
+  <div class="col">
+    <p class="antetitulo revela" data-n="05">El modelo</p>
+    <h2 class="revela">La regla que no podíamos vencer</h2>
+  </div>
+  <section class="scrolly" id="scrolly-error" aria-label="Cómo le ganamos a la regla simple">
+    <div class="pasos">
+      <div class="paso"><p>Entrenamos dos modelos de aprendizaje automático, Random Forest y Gradient Boosted Trees, con las semanas de 2025 anteriores a octubre. Luego les pedimos que predijeran las diez semanas siguientes, de finales de octubre a finales de diciembre, sin dejarles ver nada de ese periodo. Con el pasado se aprende, con el futuro se califica.</p>
+        <p class="destacado">Nuestro primer modelo se equivocaba en promedio por 1.64 delitos por zona y turno.</p></div>
+      <div class="paso"><p>Para saber si eso es bueno hay que compararlo con algo. La comparación más dura resultó ser la más simple: repetir, para cada zona y turno, su promedio histórico. Esa regla de una línea se equivocaba por <b>1.61</b>. Perdíamos.</p></div>
+      <div class="paso"><p>Probamos lo obvio: darle más historia. Repetimos todo con cuatro años en lugar de uno, y todo quedó un poco peor. La razón: 2023 y 2024 tuvieron más delitos que 2025, así que promediar toda la historia sobreestima el presente.</p>
+        <p class="destacado">Lo que más anticipa a una zona no es su historia completa, sino su último año.</p></div>
+      <div class="paso"><p>Con esa idea agregamos variables nuevas: cuántos delitos hubo hace dos semanas y hace exactamente un año, el promedio de las últimas 52 semanas, la época del año, lo que pasó en las zonas vecinas y los días festivos. Los que más ayudaron fueron los que miran el último año. El clima también ayudaba, pero lo descartamos: usamos el clima que de verdad hizo, y un lunes nadie sabe qué temperatura hará el viernes.</p>
+        <p>El modelo mejorado se equivoca por <b>1.59</b> y le gana al promedio histórico en las diez semanas de prueba. Pero por poco: la regla "repetir el promedio del último año", sin modelo, ya está en 1.61.</p></div>
+      <div class="paso"><p>La mejora no vino de un algoritmo más sofisticado, sino de mirar el periodo correcto: casi el 40&nbsp;% del modelo es el promedio de las últimas 52 semanas. Y queda una marca más a la derecha, a la que ningún modelo llega.</p></div>
+    </div>
+    <figure class="escena grafica" style="margin:0">
+      <p class="fig-titulo">Error promedio por zona y turno en las 10 semanas de prueba</p>
+      <p class="fig-sub">Delitos de diferencia entre lo que se predijo y lo que pasó. Más a la derecha es mejor. El eje empieza en 1.50, no en cero: las diferencias son de centésimas.</p>
+      <div id="grafica-error"></div>
+    </figure>
+  </section>
+
+  <div class="col">
+    <h3 class="revela">El límite que ningún modelo cruza</h3>
+    <p class="revela">En algún momento dejamos de preguntarnos cómo mejorar y empezamos a preguntarnos cuánto se puede mejorar. Es una pregunta que casi nunca se hace y que cambió por completo cómo leemos los resultados.</p>
+    <p class="revela">Aunque supiéramos exactamente qué tan peligrosa es cada zona en cada turno, el número de delitos de una semana concreta seguiría teniendo una parte de azar, igual que una moneda bien balanceada no cae cara exactamente la mitad de las veces. Calculamos que ese azar, por sí solo, deja un error de alrededor de <b>1.53</b>. Nuestro modelo está en <b>1.59</b>. Quedan unas centésimas por ganar, no más.</p>
+    <p class="revela">La gráfica de abajo lo muestra de otra forma. Cada punto es una zona en un turno: lo que se predijo, en promedio, contra lo que pasó en las diez semanas de prueba. Los puntos siguen la diagonal, pero ninguno de los dos métodos la clava, y se parecen mucho entre sí.</p>
+  </div>
+  <div class="figura-ancha revela" style="max-width:52rem">
+    <p class="fig-titulo">Predicho contra real, zona por zona</p>
+    <p class="fig-sub">Delitos por semana en cada una de las 1,096 combinaciones de zona y turno, promedio de las 10 semanas de prueba.</p>
+    <div class="controles"><div class="grupo-control"><span class="etq">Predicción</span><div id="disp-metodo"></div></div></div>
+    <div class="grafica" id="grafica-dispersion"></div>
+    <p class="fig-nota">Las predicciones son las que publica la presentación del proyecto: las del primer Random Forest (error de 1.64) y las del promedio histórico (1.61). El modelo mejorado (1.59) no tiene predicciones publicadas zona por zona.</p>
+  </div>
+  <div class="col">
+    <p class="revela">Lo mismo pasa con la cobertura. Si alguien supiera de antemano cuáles van a ser las zonas más activas y reforzara justo el 10&nbsp;% de ellas, cubriría como máximo el <b>26&nbsp;%</b> de los delitos. Al empezar el proyecto nos pusimos como meta el 40&nbsp;%, tomada de estudios que usaban cuadrículas mucho más pequeñas. Con esta forma de dividir la ciudad, esa meta era imposible desde el principio.</p>
+    <p class="cita revela">Ganarle a "repetir lo reciente" es lo más difícil de la predicción de delitos.</p>
+    <p class="revela">Estudios hechos en otras ciudades, como Dallas, llegan a la misma conclusión.</p>
+  </div>
+</section>
+
+<!-- ================= 06 · PATRULLAS ================= -->
+<section class="capitulo-sec" id="patrullas" data-capitulo="Qué significa para una patrulla">
+  <div class="col">
+    <p class="antetitulo revela" data-n="06">Utilidad práctica</p>
+    <h2 class="revela">Qué significa para una patrulla</h2>
+    <p class="revela">Al mando policial no le dice mucho que el error sea 1.59. Lo que necesita saber es otra cosa: <b>si refuerzo cierta cantidad de zonas y turnos, ¿qué parte de los delitos queda dentro?</b></p>
+    <p class="revela">Si las eligiera al azar, cubriría justo la misma proporción: el 10&nbsp;% de las zonas, el 10&nbsp;% de los delitos. Siguiendo al modelo, con el 10&nbsp;% de las zonas y turnos, que son 110 de 1,096, se cubre alrededor del 20&nbsp;% de los delitos: unos 750 por semana, contra unos 380 al azar. Es el doble con el mismo número de patrullas.</p>
+  </div>
+  <div class="figura-ancha revela">
     <p class="fig-titulo">Delitos cubiertos según cuántas zonas y turnos se refuercen</p>
-    <p class="fig-sub">Promedio de las 10 semanas de prueba de 2025, con unos 3,800 delitos por semana.</p>
-    <div class="leyenda"><span class="ley-modelo">Siguiendo al modelo</span><span class="ley-azar">Eligiendo al azar</span><span class="ley-futuro">Sabiendo el futuro</span></div>
-    <div id="grafica-curva"></div>
-    <div class="control">
-      <label for="rango">Reforzar el</label>
-      <input type="range" id="rango" min="1" max="50" value="10" aria-describedby="lectura-curva">
+    <p class="fig-sub">Promedio de las 10 semanas de prueba de 2025, con unos 3,800 delitos por semana. Mueve el control para cambiar cuántas zonas y turnos se refuerzan.</p>
+    <div class="cobertura">
+      <div>
+        <div class="leyenda"><span><i class="linea" style="background:var(--incidente)"></i>Siguiendo al modelo</span><span><i class="linea" style="background:var(--secundario)"></i>Eligiendo al azar</span><span style="color:var(--tinta)"><i class="linea punteada"></i>Sabiendo el futuro (techo)</span></div>
+        <div class="grafica" id="grafica-curva"></div>
+      </div>
+      <div>
+        <div class="mando">
+          <label for="rango">Zonas y turnos reforzados <output id="rango-valor" for="rango">10&nbsp;%</output></label>
+          <input type="range" id="rango" min="1" max="50" step="1" value="10" aria-describedby="lectura-curva">
+          <div class="escala"><span>1&nbsp;%</span><span>50&nbsp;%</span></div>
+          <div class="segmentado" id="rango-atajos" style="margin-top:.6rem"></div>
+        </div>
+        <div class="metricas" aria-live="polite">
+          <div class="m-modelo"><strong id="m-modelo">20&nbsp;%</strong><span>de los delitos, siguiendo al modelo</span></div>
+          <div class="m-azar"><strong id="m-azar">10&nbsp;%</strong><span>eligiendo al azar</span></div>
+          <div><strong id="m-techo">26&nbsp;%</strong><span>sabiendo el futuro: el techo</span></div>
+          <div><strong id="m-del-techo">76&nbsp;%</strong><span>del techo alcanza el modelo</span></div>
+          <div><strong id="m-zonas">110</strong><span id="m-zonas-t">zonas y turnos de 1,096</span></div>
+          <div><strong id="m-semana">750</strong><span id="m-semana-t">delitos por semana cubiertos (al azar, 380)</span></div>
+        </div>
+        <p class="lectura-curva" id="lectura-curva"></p>
+      </div>
     </div>
-    <p class="lectura-curva" id="lectura-curva" aria-live="polite"></p>
-  </figure>
+  </div>
+  <div class="col">
+    <p class="revela">La línea punteada es lo que lograría alguien que conociera el futuro: 26&nbsp;%. <b>El modelo llega al 76&nbsp;% de eso.</b> La ventaja del modelo es mayor cuanto más concentrado está el esfuerzo. Con el 5&nbsp;% de las zonas cubre más del doble que el azar; con el 30&nbsp;%, casi la mitad de los delitos. Dónde poner el corte depende de cuántas patrullas haya, y esa decisión le toca a quien conoce el presupuesto.</p>
+    <p class="revela">Un detalle que nos parece una buena noticia: las zonas que marca el modelo se parecen mucho a las que marcaría la experiencia. El modelo no contradice a los comandantes; ordena lo que ya intuyen, le pone números y lo actualiza cada semana.</p>
+  </div>
+  <div class="figura-ancha revela">
+    <div class="mini-mapas">
+      <div>
+        <p class="fig-titulo">¿Y funciona todas las semanas?</p>
+        <p class="fig-sub">Parte de los delitos que cayó en las 110 zonas y turnos señalados (el 10&nbsp;%), semana por semana.</p>
+        <div class="grafica" id="grafica-semanas"></div>
+      </div>
+      <div class="mini-mapa">
+        <p class="fig-titulo">Las zonas que el modelo manda reforzar</p>
+        <p class="fig-sub" id="mini-sub">Semana 42 de 2025, con el 10&nbsp;% de las zonas y turnos. Entre más oscura la zona, más turnos señalados. Cambia la semana o el porcentaje de arriba.</p>
+        <div class="controles"><div class="grupo-control"><span class="etq">Semana</span><div id="mini-semana"></div></div></div>
+        <svg id="mapa-mini" role="img" aria-label="Mapa de las zonas de patrullaje que el modelo señala en la semana elegida."></svg>
+        <div class="leyenda" id="mini-leyenda" style="margin-top:.6rem"></div>
+      </div>
+    </div>
+  </div>
 </section>
 
-<div class="col">
-  <h2>¿Y qué tipo de delito?</h2>
-  <p>La pregunta original también preguntaba de qué tipo serían los delitos. Construimos un clasificador que, para cada delito, intenta adivinar su tipo entre siete grupos usando solo lo que se sabe antes de que ocurra: la zona, el turno, el día, la época del año y la mezcla de delitos de esa zona en el último año.</p>
-  <p>Acierta 3 de cada 10 veces, prácticamente lo mismo que la regla "será el tipo más común de esa zona". En la misma esquina puede pasar un robo, una pelea o un vandalismo, y nada en los datos permite saber cuál sigue. Pero hay algo que sí se puede anticipar bien: la mezcla.</p>
-</div>
+<!-- ================= 07 · TIPO ================= -->
+<section class="capitulo-sec calido" id="tipo" data-capitulo="¿Y qué tipo de delito?">
+  <div class="col">
+    <p class="antetitulo revela" data-n="07">El tipo de delito</p>
+    <h2 class="revela">Se anticipa la mezcla, no el siguiente delito</h2>
+    <p class="revela">La pregunta original también preguntaba de qué tipo serían los delitos. Construimos un clasificador que, para cada delito, intenta adivinar su tipo entre siete grupos usando solo lo que se sabe antes de que ocurra: la zona, el turno, el día, la época del año y la mezcla de delitos de esa zona en el último año.</p>
+    <p class="revela">Acierta 3 de cada 10 veces, prácticamente lo mismo que la regla "será el tipo más común de esa zona". En la misma esquina puede pasar un robo, una pelea o un vandalismo, y nada en los datos permite saber cuál sigue.</p>
+  </div>
+  <div class="figura-ancha revela" style="max-width:62rem">
+    <div class="dos-col">
+      <div>
+        <p class="fig-titulo">¿Cuántas veces acierta el tipo?</p>
+        <p class="fig-sub">Delitos de las 10 semanas de prueba cuyo tipo se adivinó a la primera.</p>
+        <div class="grafica" id="grafica-clasificador"></div>
+      </div>
+      <div>
+        <p class="fig-titulo">Zona 1834, de 12 a 18 h: de cada 100 delitos, ¿cuántos de cada tipo?</p>
+        <p class="fig-sub">Lo que esperábamos antes de las 10 semanas de prueba, contra lo que pasó.</p>
+        <div class="leyenda"><span><i style="background:var(--incidente)"></i>Lo que esperábamos</span><span><i style="background:var(--secundario-claro)"></i>Lo que pasó</span></div>
+        <div class="grafica" id="grafica-mezcla"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <p class="revela">Pero hay algo que sí se puede anticipar bien: la mezcla. Esperábamos que 54 de cada 100 delitos de esa zona fueran robos sin violencia; fueron 56. En toda la ciudad, la mezcla de cada zona se anticipa con un error de unos 5 puntos.</p>
+    <p class="revela">Es como una bolsa de dulces surtidos: no sabes cuál te va a salir, pero sí de qué está hecha. Para la policía, eso sirve para decidir qué tipo de presencia mandar a cada zona, aunque no diga qué va a pasar en cada esquina.</p>
+  </div>
+</section>
 
-<figure class="fig-ancha grafica" style="max-width:44rem">
-  <p class="fig-titulo">Zona 1834, de 12 a 18 h: de cada 100 delitos, ¿cuántos fueron de cada tipo?</p>
-  <p class="fig-sub">Lo que esperábamos antes de las 10 semanas de prueba, contra lo que pasó.</p>
-  <div id="grafica-mezcla"></div>
-  <figcaption>Esperábamos que 54 de cada 100 delitos fueran robos sin violencia; fueron 56. En toda la ciudad, la mezcla de cada zona se anticipa con un error de unos 5 puntos.</figcaption>
-</figure>
+<!-- ================= 08 · LÍMITES ================= -->
+<section class="capitulo-sec oscuro" id="limites" data-capitulo="Lo que este modelo no hace">
+  <div class="col">
+    <p class="antetitulo revela" data-n="08">Límites</p>
+    <h2 class="revela">Lo que este modelo no hace</h2>
+    <p class="revela">Predecir delitos tiene riesgos reales, y algunos los tomamos en cuenta desde el diseño.</p>
+  </div>
+  <div class="ancho" style="max-width:62rem">
+    <div class="puede revela">
+      <div class="si">
+        <h3><i aria-hidden="true">✓</i>Lo que sí puede</h3>
+        <ul>
+          <li>Ordenar las 1,096 zonas y turnos según cuántos delitos se esperan la semana siguiente.</li>
+          <li>Cubrir el doble de delitos que el azar con el mismo número de zonas reforzadas.</li>
+          <li>Anticipar la mezcla de tipos de cada zona, con un error de unos 5 puntos.</li>
+          <li>Volver a calcularse cada semana con los datos más recientes (hoy a mano; automatizarlo es lo que sigue).</li>
+        </ul>
+      </div>
+      <div class="no">
+        <h3><i aria-hidden="true">✕</i>Lo que no puede</h3>
+        <ul>
+          <li>Decir qué delito concreto va a pasar ni en qué esquina: acierta el tipo 3 de cada 10 veces.</li>
+          <li>Bajar el error del límite que deja el azar (≈&nbsp;1.53) ni cubrir más del 26&nbsp;% con el 10&nbsp;% de las zonas.</li>
+          <li>Hablar de personas: predice lugares y horarios, nunca individuos.</li>
+          <li>Explicar por qué ocurre el delito.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <h3 class="revela" style="color:#fff">Correlación no es causa</h3>
+    <p class="revela">El modelo aprende qué zonas y turnos suelen tener más reportes, sobre todo a partir del último año. Eso sirve para anticipar, no para explicar: que una zona salga alta no dice qué la vuelve más peligrosa, ni que mandar más patrullas ahí vaya a bajar el delito. Ese efecto no lo medimos; para saberlo habría que ponerlo a trabajar y comparar qué pasa en la calle.</p>
+    <h3 class="revela" style="color:#fff">Decisiones de diseño</h3>
+    <p class="revela"><b>Predice lugares y horarios, nunca personas.</b> El modelo no usa ni produce información sobre individuos.</p>
+    <p class="revela"><b>Deja fuera los delitos que dependen de dónde ya hay policía.</b> Las detenciones por drogas o armas se registran sobre todo donde hay más patrullas. Si las incluyéramos, el modelo aprendería a mandar más patrullas a donde ya hay más patrullas, y el sesgo se alimentaría solo. Por eso trabajamos con delitos que normalmente reporta una víctima.</p>
+    <p class="revela"><b>Solo muestra agregados.</b> Todo lo que publicamos son conteos por zona, turno y semana, o por cuadro y hora; ningún reporte individual.</p>
+    <p class="revela"><b>Y tiene límites técnicos:</b> depende casi por completo del historial reciente, solo anticipa el tipo de delito como mezcla, corre en una sola máquina y los datos de origen siguen cambiando con el tiempo.</p>
+  </div>
+</section>
 
-<div class="col">
-  <p>Es como una bolsa de dulces surtidos: no sabes cuál te va a salir, pero sí de qué está hecha. Para la policía, eso sirve para decidir qué tipo de presencia mandar a cada zona, aunque no diga qué va a pasar en cada esquina.</p>
+<!-- ================= CIERRE ================= -->
+<section class="final" id="conclusion" data-capitulo="Lo que aprendimos">
+  <div class="ancho" style="max-width:62rem">
+    <p class="antetitulo revela" data-n="09">Conclusión</p>
+    <p class="grande revela">Con las mismas patrullas, <em>el doble de delitos cubiertos.</em> Y tres cuartas partes de lo que es posible.</p>
+    <div class="barras-final en-espera" id="barras-final" role="img" aria-label="Con el 10 por ciento de las zonas y turnos: al azar se cubre el 10 por ciento de los delitos, con el modelo alrededor del 20 y sabiendo el futuro el 26.">
+      <div class="bf azar"><span class="bf-et">Al azar</span><div class="bf-pista"><div class="bf-barra" style="--w:33.3%">10&nbsp;%</div></div></div>
+      <div class="bf modelo"><span class="bf-et">Siguiendo al modelo</span><div class="bf-pista"><div class="bf-barra" style="--w:66.6%">20&nbsp;%</div></div></div>
+      <div class="bf techo"><span class="bf-et">Sabiendo el futuro</span><div class="bf-pista"><div class="bf-barra" style="--w:86.6%">26&nbsp;%</div></div></div>
+      <div class="eje"><span>0&nbsp;%</span><span>delitos cubiertos reforzando el 10&nbsp;% de las zonas y turnos</span><span>30&nbsp;%</span></div>
+    </div>
+  </div>
+  <div class="col">
+    <h3 class="revela">Lo que aprendimos</h3>
+    <ol class="lecciones">
+      <li class="revela"><div><b>Calcular el techo antes de fijar metas.</b> Saber que el máximo posible era 26&nbsp;% cambió por completo cómo valoramos un resultado de 20&nbsp;%.</div></li>
+      <li class="revela"><div><b>Comparar siempre contra una regla simple.</b> Si un modelo no le gana a "repetir el promedio", hay que decirlo. Esa comparación fue la que nos llevó a las variables que sí funcionaron.</div></li>
+      <li class="revela"><div><b>La mitad del trabajo es disciplina.</b> Guardar la fecha de cada descarga, no dejar que el futuro se cuele en las variables y documentar cada decisión fue lo que volvió confiables los resultados.</div></li>
+    </ol>
+  </div>
 
-  <h2>Lo que este modelo no hace</h2>
-  <p>Predecir delitos tiene riesgos reales, y algunos los tomamos en cuenta desde el diseño.</p>
-  <p><b>Predice lugares y horarios, nunca personas.</b> El modelo no usa ni produce información sobre individuos.</p>
-  <p><b>Deja fuera los delitos que dependen de dónde ya hay policía.</b> Las detenciones por drogas o armas se registran sobre todo donde hay más patrullas. Si las incluyéramos, el modelo aprendería a mandar más patrullas a donde ya hay más patrullas, y el sesgo se alimentaría solo. Por eso trabajamos con delitos que normalmente reporta una víctima.</p>
-  <p><b>Solo muestra agregados.</b> Todo lo que publicamos son conteos por zona, turno y semana; ningún reporte individual.</p>
-  <p>Y tiene límites técnicos: depende casi por completo del historial reciente, solo anticipa el tipo de delito como mezcla, corre en una sola máquina y los datos de origen siguen cambiando con el tiempo.</p>
+  <div class="ancho siguiente" style="max-width:62rem" data-capitulo="Lo que sigue">
+    <p class="antetitulo revela" data-n="10">Lo que sigue</p>
+    <h2 class="revela">Cuatro pasos para el modelo, y uno fuera de él</h2>
+    <div class="pasos-siguientes">
+      <div class="revela"><span>01</span><b>Un modelo hecho para contar</b><p>Probar uno pensado específicamente para contar eventos, como la regresión de Poisson.</p></div>
+      <div class="revela"><span>02</span><b>Pistas de "contagio"</b><p>Un delito suele subir el riesgo de las zonas cercanas durante unos días.</p></div>
+      <div class="revela"><span>03</span><b>Clima de verdad</b><p>Usar un pronóstico del clima real, el que se conoce el lunes, no el que hizo después.</p></div>
+      <div class="revela"><span>04</span><b>Que se actualice solo</b><p>Que todo el proceso corra cada semana sin intervención.</p></div>
+    </div>
+    <p class="cita revela">Pero quizá lo más importante ya no esté en el modelo, sino en ponerlo a trabajar y medir qué pasa en la calle.</p>
+    <p class="revela" style="max-width:var(--medida)">Si quieres ver las predicciones zona por zona, la <a href="../vista/">presentación del proyecto</a> tiene un mapa en vivo con las diez semanas de prueba.</p>
+  </div>
 
-  <h2>Lo que aprendimos</h2>
-  <ol class="aprendizajes">
-    <li><b>Calcular el techo antes de fijar metas.</b> Saber que el máximo posible era 26&nbsp;% cambió por completo cómo valoramos un resultado de 20&nbsp;%.</li>
-    <li><b>Comparar siempre contra una regla simple.</b> Si un modelo no le gana a "repetir el promedio", hay que decirlo. Esa comparación fue la que nos llevó a las variables que sí funcionaron.</li>
-    <li><b>La mitad del trabajo es disciplina.</b> Guardar la fecha de cada descarga, no dejar que el futuro se cuele en las variables y documentar cada decisión fue lo que volvió confiables los resultados.</li>
-  </ol>
-  <p>Lo que sigue es probar un modelo pensado específicamente para contar eventos, como la regresión de Poisson; agregar pistas de "contagio", porque un delito suele subir el riesgo de las zonas cercanas durante unos días; usar un pronóstico del clima real, y hacer que todo se actualice solo cada semana. Pero quizá lo más importante ya no esté en el modelo, sino en ponerlo a trabajar y medir qué pasa en la calle.</p>
-  <p>Si quieres ver las predicciones zona por zona, la <a href="../vista/">presentación del proyecto</a> tiene un mapa en vivo con las diez semanas de prueba.</p>
-
-  <details>
-    <summary>Cómo lo hicimos</summary>
-    <p>Seguimos la metodología CRISP-DM en cuatro fases: plan y arquitectura (Fase 2), preparación de datos y modelado con PySpark (Fase 3), y resultados e impacto (Fase 4).</p>
-    <ul>
-      <li><b>Datos:</b> delitos de 2022 a 2025 del portal de datos abiertos de Chicago, más el clima diario del aeropuerto O'Hare.</li>
-      <li><b>Infraestructura:</b> una instancia EC2 en AWS creada con Terraform, con Hadoop (HDFS y YARN), Spark y un catálogo Hive. Los datos se organizan en un data lake con capas de datos crudos, limpios, listos para modelar y en cuarentena.</li>
-      <li><b>Unidad de análisis:</b> zona de patrullaje por turno de seis horas por semana.</li>
-      <li><b>Prueba:</b> las semanas 42 a 51 de 2025, separadas por fecha, nunca al azar.</li>
-      <li><b>Modelo final:</b> Random Forest de 50 árboles y profundidad 8, con variables de retrasos, estacionalidad, zonas vecinas y festivos.</li>
-      <li><b>Exclusiones:</b> delitos de drogas y armas, reportes con hora desconocida y la zona 6100, que agrupa ubicaciones ocultas por privacidad.</li>
-    </ul>
-  </details>
-  <details>
-    <summary>Las cifras completas</summary>
-    <table>
-      <caption>Error y cobertura en las 10 semanas de prueba</caption>
-      <thead><tr><th>Forma de predecir</th><th>Error medio</th><th>Delitos cubiertos con el 10&nbsp;%</th></tr></thead>
-      <tbody>
-        <tr><td>Promedio del último mes</td><td>1.72</td><td>19.0&nbsp;%</td></tr>
-        <tr><td>Primer modelo</td><td>1.64</td><td>19.8&nbsp;%</td></tr>
-        <tr><td>Promedio histórico</td><td>1.61</td><td>20.0&nbsp;%</td></tr>
-        <tr><td>Promedio del último año</td><td>1.61</td><td>20.0&nbsp;%</td></tr>
-        <tr class="destacada"><td>Modelo mejorado</td><td>1.59</td><td>19.9&nbsp;%</td></tr>
-        <tr><td>Límite por azar</td><td>≈&nbsp;1.53</td><td>26&nbsp;% como máximo</td></tr>
-      </tbody>
-    </table>
-    <table>
-      <caption>Clasificador del tipo de delito</caption>
-      <thead><tr><th>Forma de predecir</th><th>Acierta el tipo</th><th>Entre los 2 más probables</th></tr></thead>
-      <tbody>
-        <tr><td>Regresión logística</td><td>29.4&nbsp;%</td><td>48.5&nbsp;%</td></tr>
-        <tr><td>Random Forest</td><td>29.3&nbsp;%</td><td>48.5&nbsp;%</td></tr>
-        <tr><td>Tipo más común de la zona</td><td>29.1&nbsp;%</td><td>48.9&nbsp;%</td></tr>
-        <tr><td>Tipo más común de la ciudad</td><td>24.6&nbsp;%</td><td>44.0&nbsp;%</td></tr>
-      </tbody>
-    </table>
-  </details>
-</div>
-</article>
+  <div class="col notas" style="margin-top:4rem">
+    <details>
+      <summary>Cómo lo hicimos</summary>
+      <p style="margin-top:1rem">Seguimos la metodología CRISP-DM en cuatro fases: plan y arquitectura (Fase 2), preparación de datos y modelado con PySpark (Fase 3), y resultados e impacto (Fase 4).</p>
+      <ul>
+        <li><b>Datos:</b> delitos de 2022 a 2025 del portal de datos abiertos de Chicago, más el clima diario del aeropuerto O'Hare.</li>
+        <li><b>Infraestructura:</b> una instancia EC2 en AWS creada con Terraform, con Hadoop (HDFS y YARN), Spark y un catálogo Hive. Los datos se organizan en un data lake con capas de datos crudos, limpios, listos para modelar y en cuarentena.</li>
+        <li><b>Unidad de análisis:</b> zona de patrullaje por turno de seis horas por semana.</li>
+        <li><b>Prueba:</b> las semanas 42 a 51 de 2025, separadas por fecha, nunca al azar.</li>
+        <li><b>Modelo final:</b> Random Forest de 50 árboles y profundidad 8, con variables de retrasos, estacionalidad, zonas vecinas y festivos.</li>
+        <li><b>Exclusiones:</b> delitos de drogas y armas, reportes con hora desconocida y la zona 6100, que agrupa ubicaciones ocultas por privacidad.</li>
+        <li><b>Gráficas de este reporte:</b> los mapas, el calendario por hora, los tipos y la serie semanal se dibujan con conteos agregados de la capa limpia (<code>scripts/exportar-reporte.py</code>); la cobertura y la dispersión, con las predicciones publicadas de las 10 semanas de prueba.</li>
+      </ul>
+    </details>
+    <details>
+      <summary>Las cifras completas</summary>
+      <table>
+        <caption>Error y cobertura en las 10 semanas de prueba</caption>
+        <thead><tr><th>Forma de predecir</th><th>Error medio</th><th>Delitos cubiertos con el 10&nbsp;%</th></tr></thead>
+        <tbody>
+          <tr><td>Promedio del último mes</td><td>1.72</td><td>19.0&nbsp;%</td></tr>
+          <tr><td>Primer modelo</td><td>1.64</td><td>19.8&nbsp;%</td></tr>
+          <tr><td>Promedio histórico</td><td>1.61</td><td>20.0&nbsp;%</td></tr>
+          <tr><td>Promedio del último año</td><td>1.61</td><td>20.0&nbsp;%</td></tr>
+          <tr class="destacada"><td>Modelo mejorado</td><td>1.59</td><td>19.9&nbsp;%</td></tr>
+          <tr><td>Límite por azar</td><td>≈&nbsp;1.53</td><td>26&nbsp;% como máximo</td></tr>
+        </tbody>
+      </table>
+      <table>
+        <caption>Clasificador del tipo de delito</caption>
+        <thead><tr><th>Forma de predecir</th><th>Acierta el tipo</th><th>Entre los 2 más probables</th></tr></thead>
+        <tbody>
+          <tr><td>Regresión logística</td><td>29.4&nbsp;%</td><td>48.5&nbsp;%</td></tr>
+          <tr><td>Random Forest</td><td>29.3&nbsp;%</td><td>48.5&nbsp;%</td></tr>
+          <tr><td>Tipo más común de la zona</td><td>29.1&nbsp;%</td><td>48.9&nbsp;%</td></tr>
+          <tr><td>Tipo más común de la ciudad</td><td>24.6&nbsp;%</td><td>44.0&nbsp;%</td></tr>
+        </tbody>
+      </table>
+    </details>
+  </div>
+</section>
+</main>
 
 <footer class="pie">
   <div><b>Proyecto integrador de tecnologías de Big Data.</b> Valentino De Paola, Carlos David Gonzalez Davila y Eduardo Lopez Uresti, noviembre de 2026.</div>
   <div>Datos: <a href="https://data.cityofchicago.org/">Portal de datos abiertos de Chicago</a>. Código y documentación en <a href="https://github.com/valentinodepaola/proyecto-integrador-big-data">GitHub</a>. Presentación con el mapa en vivo: <a href="../vista/">aquí</a>.</div>
 </footer>
 
-<script src="../vista/datos/predicciones_2025.js"></script>
 <script src="../vista/datos/beats.js"></script>
-<script>
-(() => {
-  const PRED = window.PREDICCIONES, BEATS = window.BEATS;
-  const sinMovimiento = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const fmt = (n, d = 0) => n.toLocaleString("es-MX", { minimumFractionDigits: d, maximumFractionDigits: d });
-  const svgNS = "http://www.w3.org/2000/svg";
-
-  // ---------- Barra de lectura ----------
-  const barra = document.getElementById("lectura");
-  addEventListener("scroll", () => {
-    const max = document.documentElement.scrollHeight - innerHeight;
-    barra.style.width = `${max > 0 ? scrollY / max * 100 : 0}%`;
-  }, { passive: true });
-
-  // ---------- Mapa de portada ----------
-  // Primero se dibujan las líneas de las zonas, de norte a sur. Con el mapa completo, se pintan de rojo las
-  // zonas que el modelo mandaría a vigilar de 12 a 18 h, y se recorren las 10 semanas de prueba una por una.
-  if (BEATS && PRED) {
-    const col = Object.fromEntries(PRED.columnas.map((c, i) => [c, i]));
-    const TURNO = 2;   // 12-18 h, el turno más activo
-    const porSemana = Object.fromEntries(PRED.semanas.map(s => [s, new Set()]));
-    for (const f of PRED.filas) if (f[col.turno] === TURNO && f[col.senalada]) porSemana[f[col.semana]]?.add(f[col.beat]);
-
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    const coslat = Math.cos(41.84 * Math.PI / 180);
-    for (const f of BEATS.features) for (const pol of f.geometry.coordinates) for (const [x, y] of pol[0]) {
-      minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-    }
-    const W = (maxX - minX) * coslat * 1000, H = (maxY - minY) * 1000;
-    const px = x => ((x - minX) * coslat * 1000).toFixed(1), py = y => ((maxY - y) * 1000).toFixed(1);
-    const TRAZO = 1400;   // ms que tarda la ola de trazo en llegar del norte al sur
-    const paths = BEATS.features.map(f => {
-      const d = f.geometry.coordinates.map(pol => "M" + pol[0].map(([x, y]) => `${px(x)},${py(y)}`).join("L") + "Z").join("");
-      const norte = (maxY - f.geometry.coordinates[0][0][0][1]) / (maxY - minY);
-      return `<path d="${d}" pathLength="1" data-beat="${f.properties.beat}" style="--d:${Math.round(norte * TRAZO)}"><title>Zona ${f.properties.beat}</title></path>`;
-    }).join("");
-    const figura = document.querySelector("figure.mapa-portada");
-    document.getElementById("mapa-portada").innerHTML = `<svg viewBox="-3 -3 ${W + 6} ${H + 6}" preserveAspectRatio="xMidYMid meet">${paths}</svg>`;
-    const zonas = [...document.querySelectorAll("#mapa-portada path")];
-
-    function pintar(s) {
-      const elegidas = porSemana[s];
-      zonas.forEach(p => p.classList.toggle("roja", elegidas.has(+p.dataset.beat)));
-    }
-
-    if (sinMovimiento) pintar(PRED.semanas[PRED.semanas.length - 1]);
-    else {
-      figura.classList.add("trazando");
-      let k = 0, visible = true;
-      const avanzar = () => { if (visible && !document.hidden) pintar(PRED.semanas[k++ % PRED.semanas.length]); };
-      setTimeout(() => {
-        avanzar();
-        setInterval(avanzar, 2400);
-      }, TRAZO + 2200);   // espera a que termine de dibujarse la última zona
-      // Si la portada no está a la vista, el mapa se queda quieto
-      new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(figura);
-    }
-  }
-
-  // ---------- Utilidad para dibujar SVG ----------
-  const el = (tag, attrs = {}, texto) => {
-    const n = document.createElementNS(svgNS, tag);
-    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
-    if (texto !== undefined) n.textContent = texto;
-    return n;
-  };
-  const estilo = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-  const escritorio = matchMedia("(min-width: 1100px)");
-  const etapas = {};   // etapas[nombre](paso, total): pone la gráfica en el estado de ese paso
-
-  // ---------- Error promedio: los puntos llegan a su lugar paso a paso ----------
-  (() => {
-    const filas = [
-      ["Repetir el promedio del último mes", 1.722, "", "1.72"],
-      ["Nuestro primer modelo", 1.642, "", "1.64"],
-      ["Repetir el promedio histórico", 1.614, "", "1.61"],
-      ["Repetir el promedio del último año", 1.609, "", "1.61"],
-      ["Modelo mejorado", 1.585, "modelo", "1.59"],
-      ["Límite: lo que deja el azar", 1.53, "limite", "≈ 1.53"],
-    ];
-    // Qué filas se ven en cada paso del texto
-    const visiblesPorPaso = [[1], [0, 1, 2], [0, 1, 2], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4, 5]];
-    const destacadaPorPaso = [1, 2, 2, 4, 5];
-    const cont = document.getElementById("grafica-error");
-    const angosto = cont.clientWidth < 560;
-    const W = angosto ? 380 : 760, izq = angosto ? 6 : 290, der = angosto ? 52 : 50, alto = angosto ? 50 : 46, arriba = 10;
-    const H = arriba + filas.length * alto + 34;
-    const x0 = 1.75, x1 = 1.50, x = v => izq + (x0 - v) / (x0 - x1) * (W - izq - der);
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Error promedio: último mes 1.72, primer modelo 1.64, promedio histórico 1.61, promedio del último año 1.61, modelo mejorado 1.59, límite por azar 1.53." });
-    for (const t of [1.75, 1.70, 1.65, 1.60, 1.55, 1.50]) {
-      svg.append(el("line", { x1: x(t), x2: x(t), y1: arriba, y2: H - 28, stroke: estilo("--linea") }));
-      svg.append(el("text", { x: x(t), y: H - 8, "text-anchor": "middle", "font-size": angosto ? 11 : 13 }, t.toFixed(2)));
-    }
-    const grupos = filas.map(([nombre, v, tipo, rotulo], i) => {
-      const yc = arriba + i * alto + (angosto ? 32 : alto / 2);
-      const color = tipo === "modelo" ? estilo("--sangre") : tipo === "limite" ? estilo("--texto-2") : estilo("--tinta");
-      const g = el("g", { class: "fila-error" });
-      const etiqueta = el("text", { x: angosto ? izq : izq - 16, y: angosto ? yc - 13 : yc + 5, "text-anchor": angosto ? "start" : "end",
-        "font-size": angosto ? 13 : 15, "font-weight": tipo === "modelo" ? 700 : 400, fill: tipo === "modelo" ? estilo("--sangre") : estilo("--texto") }, nombre);
-      if (tipo === "limite") etiqueta.setAttribute("font-style", "italic");
-      const riel = el("line", { x1: izq, x2: x(v), y1: yc, y2: yc, stroke: tipo === "modelo" ? estilo("--sangre") : estilo("--linea"),
-        "stroke-width": tipo === "modelo" ? 2 : 1, pathLength: 1, class: "riel" });
-      const punto = el("g", { class: "punto" });
-      if (tipo === "limite") punto.append(el("circle", { cx: 0, cy: yc, r: 7, fill: estilo("--papel"), stroke: color, "stroke-width": 2, "stroke-dasharray": "3 3" }));
-      else punto.append(el("circle", { cx: 0, cy: yc, r: tipo === "modelo" ? 9 : 7, fill: color }));
-      punto.append(el("text", { x: 14, y: yc + 5, "font-size": angosto ? 12 : 14, "font-weight": 700, fill: color }, rotulo));
-      g.append(etiqueta, riel, punto);
-      svg.append(g);
-      return { g, punto, riel, destino: x(v), etiqueta };
-    });
-    cont.append(svg);
-    etapas.error = paso => {
-      const vis = visiblesPorPaso[Math.min(paso, visiblesPorPaso.length - 1)];
-      grupos.forEach((f, i) => {
-        const ve = vis.includes(i);
-        f.g.style.opacity = ve ? (i === destacadaPorPaso[paso] || paso >= 4 ? 1 : .55) : 0;
-        f.punto.style.transform = `translateX(${ve ? f.destino : izq}px)`;
-        f.riel.style.strokeDashoffset = ve ? 0 : 1;
-      });
-    };
-  })();
-
-  // ---------- Curva de cobertura ----------
-  (() => {
-    if (!PRED) return;
-    const col = Object.fromEntries(PRED.columnas.map((c, i) => [c, i]));
-    const porSemana = {};
-    for (const f of PRED.filas) (porSemana[f[col.semana]] ??= []).push(f);
-    const semanas = Object.values(porSemana);
-    const total = semanas.reduce((a, fs) => a + fs.reduce((b, f) => b + f[col.real], 0), 0) / semanas.length;
-    const n = semanas[0].length;
-    const cubiertos = (p, clave) => semanas.reduce((a, fs) => {
-      const k = Math.ceil(fs.length * p / 100);
-      const orden = [...fs].sort((x, y) => y[col[clave]] - x[col[clave]] || x[col.beat] - y[col.beat] || x[col.turno] - y[col.turno]);
-      return a + orden.slice(0, k).reduce((b, f) => b + f[col.real], 0);
-    }, 0) / semanas.length;
-    const modelo = [0], futuro = [0];
-    for (let p = 1; p <= 50; p++) { modelo[p] = cubiertos(p, "rf") / total * 100; futuro[p] = cubiertos(p, "real") / total * 100; }
-
-    const cont = document.getElementById("grafica-curva");
-    const angosto = cont.clientWidth < 560, fs = angosto ? 12 : 14;
-    const W = angosto ? 380 : 760, H = angosto ? 320 : 420, m = { i: angosto ? 40 : 52, d: angosto ? 12 : 20, a: 24, b: 44 };
-    const x = p => m.i + p / 50 * (W - m.i - m.d), y = v => H - m.b - v / 80 * (H - m.a - m.b);
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Curva de cobertura: con el 10 por ciento de zonas y turnos, el modelo cubre 20 por ciento de los delitos, el azar 10 y sabiendo el futuro 26." });
-    for (const v of [0, 20, 40, 60, 80]) {
-      svg.append(el("line", { x1: m.i, x2: W - m.d, y1: y(v), y2: y(v), stroke: estilo("--linea") }));
-      svg.append(el("text", { x: m.i - 8, y: y(v) + 4, "text-anchor": "end", "font-size": fs }, `${v} %`));
-    }
-    for (const p of [0, 10, 20, 30, 40, 50]) svg.append(el("text", { x: x(p), y: H - m.b + 20, "text-anchor": "middle", "font-size": fs }, `${p} %`));
-    svg.append(el("text", { x: W - m.d, y: H - 4, "text-anchor": "end", "font-size": fs }, "zonas y turnos reforzados"));
-    svg.append(el("text", { x: m.i - 8, y: 10, "font-size": fs, "text-anchor": "start" }, "delitos cubiertos"));
-    const camino = vals => vals.map((v, p) => `${p ? "L" : "M"}${x(p).toFixed(1)},${y(v).toFixed(1)}`).join("");
-    const area = el("path", { d: camino(modelo) + [...modelo.keys()].reverse().map(p => `L${x(p).toFixed(1)},${y(p).toFixed(1)}`).join("") + "Z",
-      fill: estilo("--sangre-clara"), class: "aparece" });
-    const lAzar = el("path", { d: camino([...modelo.keys()]), fill: "none", stroke: estilo("--gris"), "stroke-width": 2, pathLength: 1, class: "traza" });
-    const lFuturo = el("path", { d: camino(futuro), fill: "none", stroke: estilo("--tinta"), "stroke-width": 1.6, "stroke-dasharray": "6 4", class: "aparece" });
-    const lModelo = el("path", { d: camino(modelo), fill: "none", stroke: estilo("--sangre"), "stroke-width": 3, pathLength: 1, class: "traza" });
-    const guia = el("line", { y1: m.a, y2: H - m.b, stroke: estilo("--tinta"), "stroke-width": 1 });
-    const pM = el("circle", { r: 6, fill: estilo("--sangre") }), pA = el("circle", { r: 5, fill: estilo("--gris") }), pF = el("circle", { r: 5, fill: estilo("--tinta") });
-    const tM = el("text", { "font-size": fs + 1, "font-weight": 700, fill: estilo("--sangre") });
-    const marcador = el("g", { class: "aparece" }); marcador.append(guia, pA, pF, pM, tM);
-    svg.append(area, lAzar, lFuturo, lModelo, marcador);
-    cont.append(svg);
-
-    const rango = document.getElementById("rango"), lectura = document.getElementById("lectura-curva");
-    let actual = +rango.value, animacion = null;
-    function poner(p) {
-      actual = p; rango.value = Math.round(p);
-      const xp = x(p), q = Math.round(p);
-      guia.setAttribute("x1", xp); guia.setAttribute("x2", xp);
-      pM.setAttribute("cx", xp); pM.setAttribute("cy", y(modelo[q]));
-      pA.setAttribute("cx", xp); pA.setAttribute("cy", y(q));
-      pF.setAttribute("cx", xp); pF.setAttribute("cy", y(futuro[q]));
-      tM.setAttribute("x", xp + (q > 40 ? -12 : 12)); tM.setAttribute("y", y(modelo[q]) + 22);
-      tM.setAttribute("text-anchor", q > 40 ? "end" : "start");
-      tM.textContent = `${fmt(modelo[q], 1)} %`;
-      const zonas = Math.ceil(n * q / 100), semanal = modelo[q] / 100 * total;
-      lectura.innerHTML = `Reforzando <b>${q} %</b> de las zonas y turnos (${fmt(zonas)} de ${fmt(n)}), el modelo cubre <b>${fmt(modelo[q], 1)} %</b> de los delitos, unos ${fmt(semanal)} por semana. Al azar serían ${fmt(q)} %; sabiendo el futuro, ${fmt(futuro[q], 1)} %.`;
-    }
-    // Mueve el marcador poco a poco hasta otro porcentaje
-    function llevarA(meta) {
-      cancelAnimationFrame(animacion);
-      if (sinMovimiento) return poner(meta);
-      const desde = actual, t0 = performance.now(), dur = 900;
-      const tic = t => {
-        const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
-        poner(Math.round(desde + (meta - desde) * e));
-        if (k < 1) animacion = requestAnimationFrame(tic);
-      };
-      animacion = requestAnimationFrame(tic);
-    }
-    rango.addEventListener("input", () => { cancelAnimationFrame(animacion); poner(+rango.value); });
-    poner(actual);
-    etapas.curva = (paso, total, porScroll) => {
-      const ve = (n, cond) => n.classList.toggle("oculto", !cond);
-      ve(lAzar, true);
-      ve(lModelo, paso >= 1); ve(area, paso >= 1); ve(lFuturo, paso >= 1); ve(marcador, paso >= 1);
-      lectura.classList.toggle("oculto", paso < 1);
-      if (porScroll && paso === 1) llevarA(10);
-      if (porScroll && paso === 2) llevarA(30);
-    };
-  })();
-
-  // ---------- Pasos de scroll ----------
-  document.querySelectorAll(".scrolly").forEach(sc => {
-    const pasos = [...sc.querySelectorAll(".paso")];
-    const escena = sc.querySelector(".escena");
-    let cambiar;
-    if (sc.classList.contains("galeria")) {
-      // La escena muestra una copia de la figura de cada paso
-      const cuadros = pasos.map(p => {
-        const c = p.querySelector(".paso-fig").cloneNode(true);
-        c.classList.replace("paso-fig", "cuadro");
-        c.querySelector("img").loading = "eager";
-        escena.append(c);
-        return c;
-      });
-      cambiar = i => cuadros.forEach((c, j) => c.classList.toggle("visible", j === i));
-    } else {
-      cambiar = (i, porScroll) => etapas[sc.dataset.grafica]?.(i, pasos.length, porScroll);
-    }
-    let actual = -1;
-    const activar = i => {
-      if (i === actual) return;
-      actual = i;
-      pasos.forEach((p, j) => p.classList.toggle("activo", j === i));
-      cambiar(i, true);
-    };
-    // En escritorio la gráfica está al lado y el paso se activa a media pantalla; en celular la gráfica
-    // ocupa la mitad de arriba, así que el paso se activa cuando su texto aparece en la mitad de abajo.
-    let observador = null;
-    const aplicar = () => {
-      observador?.disconnect(); actual = -1;
-      if (sinMovimiento) { pasos.forEach(p => p.classList.add("activo")); cambiar(pasos.length - 1, false); return; }
-      observador = new IntersectionObserver(entradas => entradas.forEach(e => {
-        if (e.isIntersecting) activar(pasos.indexOf(e.target));
-      }), { rootMargin: escritorio.matches ? "-45% 0px -45% 0px" : "-72% 0px -27% 0px" });
-      pasos.forEach(p => p.classList.remove("activo"));
-      cambiar(0);
-      pasos.forEach(p => observador.observe(p));
-    };
-    escritorio.addEventListener("change", aplicar);
-    aplicar();
-  });
-
-  // ---------- Barra superior con la sección actual (escritorio) ----------
-  (() => {
-    const barra = document.getElementById("barra-seccion"), nombre = document.getElementById("bs-seccion");
-    const titulos = [...document.querySelectorAll("article h2")];
-    const portada = document.querySelector(".portada");
-    new IntersectionObserver(([e]) => barra.classList.toggle("visible", !e.isIntersecting)).observe(portada);
-    const alScroll = () => {
-      let actual = titulos[0];
-      for (const h of titulos) if (h.getBoundingClientRect().top < innerHeight * .35) actual = h;
-      nombre.textContent = actual.textContent;
-    };
-    addEventListener("scroll", alScroll, { passive: true });
-    alScroll();
-  })();
-
-  // ---------- Cifras que cuentan hacia arriba al aparecer ----------
-  (() => {
-    const cifras = [...document.querySelectorAll(".ficha strong")];
-    if (sinMovimiento) return;
-    const contar = el => {
-      const texto = el.textContent, meta = parseFloat(texto.replace(/,/g, "")), dec = (texto.split(".")[1] || "").length;
-      const t0 = performance.now(), dur = 1300;
-      const tic = t => {
-        const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
-        el.textContent = fmt(meta * e, dec);
-        if (k < 1) requestAnimationFrame(tic); else el.textContent = texto;
-      };
-      requestAnimationFrame(tic);
-    };
-    const obs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { contar(e.target); obs.unobserve(e.target); } }), { threshold: .6 });
-    cifras.forEach(c => obs.observe(c));
-  })();
-
-  // ---------- Mezcla de tipos en la zona 1834 ----------
-  (() => {
-    const filas = [["Robo sin violencia", 54.4, 55.7], ["Agresión física", 9.6, 10.0], ["Amenaza o ataque", 4.5, 5.2], ["Daño a la propiedad", 3.8, 1.9], ["Otros", 27.7, 27.2]];
-    const cont = document.getElementById("grafica-mezcla");
-    const angosto = cont.clientWidth < 520;
-    const W = angosto ? 380 : 640, izq = angosto ? 0 : 170, der = 30, alto = angosto ? 62 : 52;
-    const H = filas.length * alto + 40;
-    const x = v => (W - izq - der) * v / 60;
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Mezcla esperada contra real en la zona 1834: robo 54 contra 56, agresión 10 contra 10, amenaza 5 contra 5, daño 4 contra 2, otros 28 contra 27." });
-    filas.forEach(([nombre, esp, real], i) => {
-      const y0 = i * alto + (angosto ? 22 : 8);
-      svg.append(el("text", { x: angosto ? 0 : izq - 14, y: angosto ? y0 - 6 : y0 + 19, "text-anchor": angosto ? "start" : "end", "font-size": angosto ? 13 : 15, fill: estilo("--texto") }, nombre));
-      svg.append(el("rect", { x: izq, y: y0, width: x(esp), height: 14, fill: estilo("--sangre"), class: "barra-crece", style: `transition-delay:${i * 90}ms` }));
-      svg.append(el("rect", { x: izq, y: y0 + 17, width: x(real), height: 14, fill: estilo("--gris"), class: "barra-crece", style: `transition-delay:${i * 90 + 60}ms` }));
-      svg.append(el("text", { x: izq + x(esp) + 8, y: y0 + 12, "font-size": angosto ? 12 : 13, "font-weight": 700, fill: estilo("--sangre") }, Math.round(esp)));
-      svg.append(el("text", { x: izq + x(real) + 8, y: y0 + 29, "font-size": angosto ? 12 : 13, fill: estilo("--texto-2") }, Math.round(real)));
-    });
-    const ly = H - 10;
-    svg.append(el("rect", { x: izq, y: ly - 11, width: 14, height: 12, fill: estilo("--sangre") }));
-    svg.append(el("text", { x: izq + 20, y: ly, "font-size": angosto ? 12 : 13 }, "Lo que esperábamos"));
-    svg.append(el("rect", { x: izq + (angosto ? 150 : 170), y: ly - 11, width: 14, height: 12, fill: estilo("--gris") }));
-    svg.append(el("text", { x: izq + (angosto ? 170 : 190), y: ly, "font-size": angosto ? 12 : 13 }, "Lo que pasó"));
-    cont.append(svg);
-    // Las barras crecen cuando la gráfica entra a la pantalla
-    if (!sinMovimiento) {
-      svg.classList.add("en-espera");
-      const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { svg.classList.remove("en-espera"); obs.disconnect(); } }, { threshold: .4 });
-      obs.observe(svg);
-    }
-  })();
-})();
-</script>
+<script src="../vista/datos/predicciones_2025.js"></script>
+<script src="datos/agregados.js"></script>
+<script src="js/base.js"></script>
+<script src="js/mapa.js"></script>
+<script src="js/graficas.js"></script>
+<script src="js/reporte.js"></script>
 </body>
 </html>
